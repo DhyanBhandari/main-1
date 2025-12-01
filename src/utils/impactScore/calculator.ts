@@ -189,7 +189,7 @@ export function calculateEnvironmentalScore(
 ): EnvironmentalScore {
   // Handle no data case
   if (!sensorData) {
-    console.error('[ImpactScore] No sensor data available. Check backend connection at http://localhost:8000');
+    console.warn('[ImpactScore] No sensor data available. Waiting for Firestore connection...');
     return createEmptyScore();
   }
 
@@ -324,7 +324,7 @@ export function formatScoreDisplay(score: EnvironmentalScore): string {
  */
 export function getScoreInterpretation(score: EnvironmentalScore): string {
   if (score.availableMetricsCount === 0) {
-    return 'No sensor data available. Please check the backend connection.';
+    return 'No sensor data available. Please check your Firebase connection.';
   }
 
   switch (score.overallGrade) {
