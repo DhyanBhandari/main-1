@@ -78,3 +78,13 @@ test_output.json
 .pytest_cache/
 .coverage
 htmlcov/
+
+# ========== DEPLOYMENT CREDENTIALS ==========
+DEPLOYMENT_KEYS.txt
+DEPLOYMENT_KEYS.md
+*_KEYS.txt
+*_CREDENTIALS.txt
+
+# ========== WINDOWS NULL FILE ==========
+nul
+NUL
