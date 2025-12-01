@@ -56,11 +56,11 @@ const HomePage = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold tracking-tighter text-gray-900 mb-8 leading-[0.9]"
+                  className="text-4xl sm:text-4xl md:text-4xl lg:text-xl font-bold tracking-tighter text-gray-900 mb-8 leading-[0.9]"
                 >
-                  Preservation <br />
+                  Making Preservation 
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0D2821] to-[#065f46]">
-                    is Profitable
+                  Profitable
                   </span> <br /> 
                 </motion.h1>
 

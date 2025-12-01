@@ -153,7 +153,8 @@ export const PartnersCarousel = () => {
             onClick={() => setIsModalOpen(true)}
             className="w-[90%] sm:w-[85%] md:w-[80%] mx-auto px-4 sm:px-6 md:px-8 py-3 sm:py-4 bg-[#0d2821] shadow-inner text-white rounded-full text-xl sm:text-2xl md:text-3xl font-bold mb-12 transition-all duration-300 hover:scale-105 hover:shadow-lg flex flex-col items-center justify-center gap-2"
           >
-            Get your Planetary Health Index
+            Get your Planetary Health Index <br />
+            ( Inguidelines with SEEA )
             <Download className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 font-bold animate-pulse" />
           </button>
         </div>
