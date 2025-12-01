@@ -21,7 +21,7 @@ Our mission is to **empower people and organizations** to contribute directly to
 
 ---
 <p align="center">
-  Made with ❤️ by <b>Aswin Kumar, Kaveyan and Anil Gehlot</b>
+  Made by Erthaloka Team</b>
 </p>
 
 
