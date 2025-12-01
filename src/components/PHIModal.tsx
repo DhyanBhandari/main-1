@@ -443,12 +443,15 @@ const PHIReportFormContent = ({ onClose }: PHIReportFormContentProps) => {
               Preparing Report...
             </>
           ) : (
-            "Get the Report"
+            "Get Your PHI Report"
           )}
         </button>
 
         <p className="text-xs text-gray-500 text-center mt-4">
-          The analysis will query satellite data and may take 25-35 seconds
+          In guidelines with UN-SEEA framework for environmental accounting
+        </p>
+        <p className="text-xs text-gray-400 text-center mt-1">
+          Analysis takes 25-35 seconds using satellite data
         </p>
       </form>
     </div>

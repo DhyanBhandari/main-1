@@ -40,10 +40,10 @@ def initialize_ee():
     if service_account and private_key_json:
         # Production: Use service account
         try:
-            key_data = json.loads(private_key_json)
+            # EE expects raw JSON string, not parsed dict
             credentials = ee.ServiceAccountCredentials(
                 service_account,
-                key_data=key_data
+                key_data=private_key_json
             )
             ee.Initialize(credentials, project=project_id)
             print(f"Earth Engine initialized with service account: {service_account}")
