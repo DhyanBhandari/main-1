@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Wind, Droplets, Gauge, Sun, Thermometer, RefreshCw } from "lucide-react";
 import { useSensorData } from "@/hooks/useSensorData";
 import { LineChart } from "@/components/charts";
-import { SensorType } from "@/services/sensorApi";
+import { SensorType } from "@/db/types";
 
 interface SensorCardData {
   label: string;

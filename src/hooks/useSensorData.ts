@@ -1,21 +1,20 @@
 /**
  * Custom Hook for Sensor Data Fetching
  *
- * Fetches data from the backend API which caches Firestore data
- * for 30 minutes to reduce costs.
+ * Direct Firestore connection - no backend required.
+ * Fetches data directly from Firebase Firestore.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  fetchAllSensorData,
-  fetchComparedData,
-  refreshCache,
-  SensorReading,
-  DailyAggregate,
-  SensorType,
-} from '@/services/sensorApi';
+  getLatestReadings,
+  getLatestReading,
+  getDailyAggregates,
+  subscribeToLatest,
+} from '@/db/sensorService';
+import { SensorReading, DailyAggregate, SensorType } from '@/db/types';
 
-const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutes in milliseconds
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes for direct Firestore (was 30 for cached backend)
 
 interface UseSensorDataResult {
   data: SensorReading[];
@@ -44,17 +43,17 @@ export const useSensorData = (
       setLoading(true);
       setError(null);
 
-      // Fetch all data in a single API call (most efficient)
-      const response = await fetchAllSensorData(type, limit, days);
+      // Fetch all data directly from Firestore in parallel
+      const [readings, latestReading, aggregates] = await Promise.all([
+        getLatestReadings(type, limit),
+        getLatestReading(type),
+        getDailyAggregates(type, days),
+      ]);
 
-      if (response.success) {
-        setData(response.data || []);
-        setLatest(response.latest || null);
-        setDailyAggregates(response.dailyAggregates || []);
-        setLastUpdated(new Date());
-      } else {
-        setError(response.error || 'Failed to fetch sensor data');
-      }
+      setData(readings);
+      setLatest(latestReading);
+      setDailyAggregates(aggregates);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching sensor data:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch sensor data');
@@ -64,25 +63,15 @@ export const useSensorData = (
   }, [type, limit, days]);
 
   const forceRefresh = useCallback(async () => {
-    try {
-      setLoading(true);
-      // First, clear the backend cache
-      await refreshCache(type);
-      // Then fetch fresh data
-      await fetchData();
-    } catch (err) {
-      console.error('Error refreshing data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to refresh data');
-    } finally {
-      setLoading(false);
-    }
-  }, [type, fetchData]);
+    // Direct Firestore - just refetch
+    await fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     // Initial fetch
     fetchData();
 
-    // Set up interval for periodic refresh (every 30 minutes)
+    // Set up interval for periodic refresh
     const interval = setInterval(fetchData, REFRESH_INTERVAL);
 
     return () => clearInterval(interval);
@@ -139,42 +128,40 @@ export const useComparedSensorData = (limit: number = 50, days: number = 7) => {
       setLoading(true);
       setError(null);
 
-      // Fetch both indoor and outdoor in a single API call
-      const response = await fetchComparedData(limit, days);
+      // Fetch both indoor and outdoor data directly from Firestore in parallel
+      const [
+        indoorReadings,
+        indoorLatest,
+        indoorAggregates,
+        outdoorReadings,
+        outdoorLatest,
+        outdoorAggregates,
+      ] = await Promise.all([
+        getLatestReadings('indoor', limit),
+        getLatestReading('indoor'),
+        getDailyAggregates('indoor', days),
+        getLatestReadings('outdoor', limit),
+        getLatestReading('outdoor'),
+        getDailyAggregates('outdoor', days),
+      ]);
 
       // Update indoor state
-      if (response.indoor.success) {
-        setIndoor({
-          data: response.indoor.data || [],
-          latest: response.indoor.latest || null,
-          dailyAggregates: response.indoor.dailyAggregates || [],
-          loading: false,
-          error: null,
-        });
-      } else {
-        setIndoor(prev => ({
-          ...prev,
-          loading: false,
-          error: response.indoor.error || 'Failed to fetch indoor data',
-        }));
-      }
+      setIndoor({
+        data: indoorReadings,
+        latest: indoorLatest,
+        dailyAggregates: indoorAggregates,
+        loading: false,
+        error: null,
+      });
 
       // Update outdoor state
-      if (response.outdoor.success) {
-        setOutdoor({
-          data: response.outdoor.data || [],
-          latest: response.outdoor.latest || null,
-          dailyAggregates: response.outdoor.dailyAggregates || [],
-          loading: false,
-          error: null,
-        });
-      } else {
-        setOutdoor(prev => ({
-          ...prev,
-          loading: false,
-          error: response.outdoor.error || 'Failed to fetch outdoor data',
-        }));
-      }
+      setOutdoor({
+        data: outdoorReadings,
+        latest: outdoorLatest,
+        dailyAggregates: outdoorAggregates,
+        loading: false,
+        error: null,
+      });
     } catch (err) {
       console.error('Error fetching compared data:', err);
       const errorMsg = err instanceof Error ? err.message : 'Failed to fetch data';
@@ -190,7 +177,7 @@ export const useComparedSensorData = (limit: number = 50, days: number = 7) => {
     // Initial fetch
     fetchData();
 
-    // Set up interval for periodic refresh (every 30 minutes)
+    // Set up interval for periodic refresh
     const interval = setInterval(fetchData, REFRESH_INTERVAL);
 
     return () => clearInterval(interval);
@@ -202,6 +189,45 @@ export const useComparedSensorData = (limit: number = 50, days: number = 7) => {
     loading: loading || indoor.loading || outdoor.loading,
     error: error || indoor.error || outdoor.error,
     refresh: fetchData,
+  };
+};
+
+/**
+ * Hook for real-time sensor data updates
+ */
+export const useRealtimeSensorData = (
+  type: SensorType,
+  limit: number = 10
+) => {
+  const [data, setData] = useState<SensorReading[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+
+    try {
+      // Subscribe to real-time updates
+      const unsubscribe = subscribeToLatest(type, (readings) => {
+        setData(readings);
+        setLoading(false);
+        setError(null);
+      }, limit);
+
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
+    } catch (err) {
+      console.error('Error subscribing to sensor data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to subscribe');
+      setLoading(false);
+    }
+  }, [type, limit]);
+
+  return {
+    data,
+    latest: data.length > 0 ? data[0] : null,
+    loading,
+    error,
   };
 };
 
