@@ -1,0 +1,33 @@
+# Planetary Health API - Backend Requirements
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Earth Engine
+earthengine-api>=0.1.380
+
+# Database
+supabase>=2.0.0
+
+# Firebase/Firestore (for sensor data)
+firebase-admin>=6.2.0
+
+# PDF Generation
+reportlab>=4.0.0
+Pillow>=10.0.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Utilities
+python-dateutil>=2.8.0
+aiofiles>=23.0.0
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0

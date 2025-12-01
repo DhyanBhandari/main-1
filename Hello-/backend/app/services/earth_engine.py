@@ -1,0 +1,189 @@
+"""
+Earth Engine Service - Handles EE initialization and queries.
+
+Supports:
+- Service account authentication (production)
+- User authentication (development)
+"""
+
+import os
+import json
+import sys
+from pathlib import Path
+
+# Add planetary_health_query to path
+backend_dir = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(backend_dir))
+sys.path.insert(0, str(backend_dir.parent))  # For planetary_health_query package
+
+_initialized = False
+
+
+def initialize_ee():
+    """
+    Initialize Earth Engine with appropriate authentication.
+
+    Uses service account in production (when EE_SERVICE_ACCOUNT is set),
+    otherwise falls back to user authentication.
+    """
+    global _initialized
+
+    if _initialized:
+        return
+
+    import ee
+
+    service_account = os.environ.get("EE_SERVICE_ACCOUNT")
+    private_key_json = os.environ.get("EE_PRIVATE_KEY")
+    project_id = os.environ.get("EE_PROJECT_ID", "vibrant-arcanum-477610-v0")
+
+    if service_account and private_key_json:
+        # Production: Use service account
+        try:
+            key_data = json.loads(private_key_json)
+            credentials = ee.ServiceAccountCredentials(
+                service_account,
+                key_data=key_data
+            )
+            ee.Initialize(credentials, project=project_id)
+            print(f"Earth Engine initialized with service account: {service_account}")
+            _initialized = True
+        except Exception as e:
+            print(f"Service account auth failed: {e}")
+            raise
+    else:
+        # Development: Use user authentication
+        try:
+            ee.Initialize(project=project_id)
+            print(f"Earth Engine initialized with user auth, project: {project_id}")
+            _initialized = True
+        except ee.EEException:
+            print("Authenticating with Earth Engine...")
+            ee.Authenticate()
+            ee.Initialize(project=project_id)
+            _initialized = True
+
+
+def is_initialized() -> bool:
+    """Check if Earth Engine is initialized."""
+    return _initialized
+
+
+def query_location(
+    lat: float,
+    lon: float,
+    mode: str = "simple",
+    include_scores: bool = True
+) -> dict:
+    """
+    Query satellite data for a location.
+
+    Args:
+        lat: Latitude (-90 to 90)
+        lon: Longitude (-180 to 180)
+        mode: "simple" (10 metrics) or "comprehensive" (24 metrics)
+        include_scores: Include pillar health scores
+
+    Returns:
+        Dict with pillar data and summary
+    """
+    global _initialized
+
+    if not _initialized:
+        initialize_ee()
+
+    try:
+        from planetary_health_query import GEEQueryEngine
+
+        engine = GEEQueryEngine(auto_init=False)  # Already initialized
+        engine._initialized = True
+
+        result = engine.query(
+            lat=lat,
+            lon=lon,
+            mode=mode,
+            include_scores=include_scores,
+            include_raw=True,
+            temporal="latest",
+            buffer_radius=500
+        )
+
+        return result
+
+    except ImportError:
+        # Fallback if package not available
+        return create_demo_response(lat, lon, mode)
+
+
+def create_demo_response(lat: float, lon: float, mode: str) -> dict:
+    """Create demo response when Earth Engine is not available."""
+    from datetime import datetime
+
+    return {
+        "query": {
+            "latitude": lat,
+            "longitude": lon,
+            "timestamp": datetime.now().isoformat(),
+            "mode": mode,
+            "buffer_radius_m": 500
+        },
+        "pillars": {
+            "A_atmospheric": {
+                "pillar_id": "A",
+                "pillar_name": "Atmospheric",
+                "pillar_color": "#3498db",
+                "metrics": {
+                    "aod": {"value": 0.35, "unit": "dimensionless", "quality": "good"},
+                    "aqi": {"value": 65, "unit": "index", "quality": "good"}
+                },
+                "score": 72
+            },
+            "B_biodiversity": {
+                "pillar_id": "B",
+                "pillar_name": "Biodiversity",
+                "pillar_color": "#27ae60",
+                "metrics": {
+                    "ndvi": {"value": 0.65, "unit": "dimensionless", "quality": "good"},
+                    "evi": {"value": 0.45, "unit": "dimensionless", "quality": "good"}
+                },
+                "score": 78
+            },
+            "C_carbon": {
+                "pillar_id": "C",
+                "pillar_name": "Carbon",
+                "pillar_color": "#8e44ad",
+                "metrics": {
+                    "tree_cover": {"value": 45, "unit": "percent", "quality": "good"},
+                    "forest_loss": {"value": 0, "unit": "binary", "quality": "good"}
+                },
+                "score": 65
+            },
+            "D_degradation": {
+                "pillar_id": "D",
+                "pillar_name": "Degradation",
+                "pillar_color": "#e74c3c",
+                "metrics": {
+                    "lst": {"value": 28.5, "unit": "Celsius", "quality": "good"},
+                    "soil_moisture": {"value": 0.32, "unit": "m3/m3", "quality": "good"}
+                },
+                "score": 70
+            },
+            "E_ecosystem": {
+                "pillar_id": "E",
+                "pillar_name": "Ecosystem",
+                "pillar_color": "#f39c12",
+                "metrics": {
+                    "population": {"value": 1250, "unit": "people/km2", "quality": "good"},
+                    "nightlights": {"value": 12.5, "unit": "nanoWatts/cm2/sr", "quality": "good"}
+                },
+                "score": 55
+            }
+        },
+        "summary": {
+            "overall_score": 68,
+            "pillar_scores": {"A": 72, "B": 78, "C": 65, "D": 70, "E": 55},
+            "data_completeness": 0.95,
+            "quality_flags": []
+        },
+        "demo_mode": True
+    }

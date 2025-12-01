@@ -1,0 +1,257 @@
+{
+  "query": {
+    "latitude": -33.8688,
+    "longitude": 151.2093,
+    "timestamp": "2025-11-27T18:55:39.198208",
+    "mode": "comprehensive",
+    "temporal": "latest",
+    "buffer_radius_m": 500,
+    "date_range": {
+      "start": "2025-10-28",
+      "end": "2025-11-27"
+    }
+  },
+  "pillars": {
+    "D_degradation": {
+      "metrics": {
+        "lst": {
+          "value": 24.767053941908785,
+          "lst_day": 24.767053941908785,
+          "lst_night": 17.52543568464739,
+          "diurnal_range": 7.241618257261393,
+          "unit": "Celsius",
+          "description": "Land Surface Temperature",
+          "quality": "good"
+        },
+        "soil_moisture": {
+          "value": null,
+          "unit": "m3/m3",
+          "description": "Volumetric Soil Water (Layer 1)",
+          "source": "ERA5-Land",
+          "quality": "unavailable"
+        },
+        "water_occurrence": {
+          "value": 66.77534133223001,
+          "seasonality": 6.208661417322834,
+          "unit": "percent",
+          "description": "Surface Water Occurrence (1984-2021)",
+          "quality": "good"
+        },
+        "drought_index": {
+          "value": null,
+          "quality": "unavailable",
+          "error": "Requires soil moisture and LST"
+        },
+        "evaporative_stress": {
+          "value": null,
+          "et": null,
+          "pet": null,
+          "unit": "index",
+          "description": "Evaporative Stress Index (1 - ET/PET)",
+          "quality": "unavailable"
+        }
+      },
+      "data_date": "2025-11-27",
+      "pillar_id": "D",
+      "pillar_name": "Degradation",
+      "pillar_color": "#e74c3c",
+      "mode": "comprehensive",
+      "query_time": "2025-11-27T18:55:41.855017",
+      "score": 100
+    },
+    "B_biodiversity": {
+      "metrics": {
+        "ndvi": {
+          "value": 0.24188779910770986,
+          "unit": "dimensionless",
+          "description": "Normalized Difference Vegetation Index",
+          "source": "Sentinel-2",
+          "resolution": "10m",
+          "quality": "good"
+        },
+        "evi": {
+          "value": 0.5730070981873596,
+          "unit": "dimensionless",
+          "description": "Enhanced Vegetation Index",
+          "source": "Sentinel-2",
+          "resolution": "10m",
+          "quality": "good"
+        },
+        "lai": {
+          "value": null,
+          "unit": "m2/m2",
+          "description": "Leaf Area Index",
+          "quality": "unavailable"
+        },
+        "fpar": {
+          "value": null,
+          "unit": "fraction",
+          "description": "Fraction of Absorbed PAR",
+          "quality": "unavailable"
+        },
+        "land_cover": {
+          "value": 50.00000000000003,
+          "class_name": "Unknown",
+          "unit": "class",
+          "description": "Dominant Land Cover Class",
+          "quality": "good"
+        }
+      },
+      "data_date": "2025-11-27",
+      "pillar_id": "B",
+      "pillar_name": "Biodiversity",
+      "pillar_color": "#27ae60",
+      "mode": "comprehensive",
+      "query_time": "2025-11-27T18:55:42.320539",
+      "score": 70
+    },
+    "E_ecosystem": {
+      "metrics": {
+        "population": {
+          "value": 2077.852056376307,
+          "total_in_buffer": 1612.4446925863624,
+          "buffer_area_km2": 0.7760151583642597,
+          "unit": "people/km2",
+          "description": "Population Density",
+          "quality": "good"
+        },
+        "nightlights": {
+          "value": null,
+          "unit": "nanoWatts/cm2/sr",
+          "description": "Nighttime Lights Radiance",
+          "interpretation": "Unknown",
+          "quality": "unavailable"
+        },
+        "human_modification": {
+          "value": 0.8672921489383175,
+          "unit": "index 0-1",
+          "description": "Global Human Modification Index",
+          "interpretation": "Very High (heavily modified)",
+          "quality": "good"
+        },
+        "elevation": {
+          "value": 60.136152764849285,
+          "min": 30,
+          "max": 113,
+          "relief": 83,
+          "unit": "meters",
+          "description": "Elevation Above Sea Level",
+          "quality": "good"
+        },
+        "distance_to_water": {
+          "value": null,
+          "unit": "meters",
+          "description": "Distance to Nearest Permanent Water",
+          "quality": "moderate"
+        }
+      },
+      "data_date": "2025-11-27",
+      "pillar_id": "E",
+      "pillar_name": "Ecosystem",
+      "pillar_color": "#f39c12",
+      "mode": "comprehensive",
+      "query_time": "2025-11-27T18:55:46.339107",
+      "score": 13
+    },
+    "C_carbon": {
+      "metrics": {
+        "tree_cover": {
+          "value": 4.144311133552896,
+          "unit": "percent",
+          "description": "Tree Cover in Year 2000",
+          "quality": "good"
+        },
+        "forest_loss": {
+          "value": 1,
+          "loss_year": 2012,
+          "unit": "binary",
+          "description": "Forest Loss Detected Since 2000",
+          "quality": "good"
+        },
+        "canopy_height": {
+          "value": 17.33544265787948,
+          "unit": "meters",
+          "description": "Canopy Height",
+          "source": "ETH Global Canopy Height 2020",
+          "quality": "good"
+        },
+        "biomass": {
+          "value": null,
+          "unit": "Mg/ha",
+          "description": "Above-ground Biomass Density",
+          "source": "GEDI L4A",
+          "quality": "unavailable"
+        },
+        "carbon_stock": {
+          "value": null,
+          "quality": "unavailable",
+          "error": "Requires biomass estimate"
+        }
+      },
+      "data_date": "2023",
+      "pillar_id": "C",
+      "pillar_name": "Carbon",
+      "pillar_color": "#8e44ad",
+      "mode": "comprehensive",
+      "query_time": "2025-11-27T18:55:48.085313",
+      "score": 28
+    },
+    "A_atmospheric": {
+      "metrics": {
+        "aod": {
+          "value": 0.08762114395759296,
+          "unit": "dimensionless",
+          "description": "Aerosol Optical Depth at 470nm",
+          "quality": "good"
+        },
+        "aqi": {
+          "value": null,
+          "unit": "index",
+          "description": "Air Quality Index (estimated from AOD)",
+          "quality": "unavailable"
+        },
+        "uv_index": {
+          "value": null,
+          "unit": "index",
+          "description": "UV Index (estimated)",
+          "quality": "unavailable"
+        },
+        "cloud_fraction": {
+          "value": null,
+          "unit": "fraction",
+          "description": "Cloud Fraction",
+          "quality": "unavailable"
+        }
+      },
+      "data_date": "2025-11-27",
+      "pillar_id": "A",
+      "pillar_name": "Atmospheric",
+      "pillar_color": "#3498db",
+      "mode": "comprehensive",
+      "query_time": "2025-11-27T18:56:03.246211",
+      "score": 100
+    }
+  },
+  "summary": {
+    "overall_score": 62,
+    "pillar_scores": {
+      "D": 100,
+      "B": 70,
+      "E": 13,
+      "C": 28,
+      "A": 100
+    },
+    "data_completeness": 0.5,
+    "quality_flags": [
+      "soil_moisture_unavailable",
+      "drought_index_unavailable",
+      "evaporative_stress_unavailable",
+      "lai_unavailable",
+      "fpar_unavailable"
+    ]
+  },
+  "time_series": {
+    "enabled": false,
+    "mode": "latest"
+  }
+}

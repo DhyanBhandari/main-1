@@ -1,0 +1,30 @@
+# Render.com Deployment Configuration
+# Deploy this file in the root of your repository
+
+services:
+  - type: web
+    name: planetary-health-api
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: |
+      pip install -r requirements.txt
+      pip install -e ../planetary_health_query || true
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: EE_PROJECT_ID
+        value: vibrant-arcanum-477610-v0
+      - key: EE_SERVICE_ACCOUNT
+        sync: false
+      - key: EE_PRIVATE_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: "*"

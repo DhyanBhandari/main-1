@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Dark green theme */
+    --background: 140 30% 8%;
+    --foreground: 120 60% 85%;
+
+    --card: 140 30% 12%;
+    --card-foreground: 120 60% 85%;
+
+    --popover: 140 30% 12%;
+    --popover-foreground: 120 60% 85%;
+
+    --primary: 120 61% 50%;
+    --primary-foreground: 140 30% 8%;
+
+    --secondary: 120 100% 25%;
+    --secondary-foreground: 120 60% 95%;
+
+    --muted: 140 30% 18%;
+    --muted-foreground: 120 20% 55%;
+
+    --accent: 120 73% 75%;
+    --accent-foreground: 140 30% 8%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 140 30% 22%;
+    --input: 140 30% 22%;
+    --ring: 120 61% 50%;
+
+    --radius: 0.75rem;
+
+    /* Green gradient colors */
+    --green-dark: 120 100% 25%;
+    --green-medium: 120 61% 50%;
+    --green-bright: 120 73% 75%;
+    --green-lime: 120 100% 90%;
+
+    /* Gradients */
+    --gradient-lidar: linear-gradient(135deg, hsl(var(--green-dark)), hsl(var(--green-medium)), hsl(var(--green-bright)));
+    --gradient-dark: linear-gradient(180deg, hsl(140 30% 8%), hsl(140 30% 5%));
+
+    /* Shadows and glows */
+    --glow-green-dark: 0 0 40px hsl(var(--green-dark) / 0.5);
+    --glow-green-medium: 0 0 40px hsl(var(--green-medium) / 0.5);
+    --glow-green-bright: 0 0 40px hsl(var(--green-bright) / 0.5);
+
+    /* Transitions */
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

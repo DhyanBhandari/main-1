@@ -1,0 +1,29 @@
+# Planetary Health Query System Requirements
+# Install with: pip install -r requirements.txt
+
+# Core
+earthengine-api>=0.1.300
+google-cloud-storage>=2.0.0
+
+# Data Processing
+pandas>=1.3.0
+numpy>=1.21.0
+
+# Geospatial
+geopandas>=0.10.0
+shapely>=1.8.0
+
+# Visualization (Optional - for PDF reports)
+matplotlib>=3.4.0
+plotly>=5.3.0
+reportlab>=3.6.0
+Pillow>=8.3.0
+
+# Utilities
+requests>=2.26.0
+python-dateutil>=2.8.0
+
+# FastAPI Server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
