@@ -40,10 +40,25 @@ def initialize_ee():
     if service_account and private_key_json:
         # Production: Use service account
         try:
-            # EE expects raw JSON string, not parsed dict
+            # Check if EE_PRIVATE_KEY is full JSON or just the key
+            if private_key_json.strip().startswith('{'):
+                # Full JSON provided - use as-is
+                key_data = private_key_json
+            elif private_key_json.strip().startswith('-----BEGIN'):
+                # Just the private key - build full JSON
+                key_data = json.dumps({
+                    "type": "service_account",
+                    "project_id": project_id,
+                    "private_key": private_key_json,
+                    "client_email": service_account,
+                    "token_uri": "https://oauth2.googleapis.com/token"
+                })
+            else:
+                raise ValueError("EE_PRIVATE_KEY must be full JSON or start with -----BEGIN PRIVATE KEY-----")
+
             credentials = ee.ServiceAccountCredentials(
                 service_account,
-                key_data=private_key_json
+                key_data=key_data
             )
             ee.Initialize(credentials, project=project_id)
             print(f"Earth Engine initialized with service account: {service_account}")
