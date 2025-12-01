@@ -13,7 +13,7 @@ export default function Featured_05() {
         <div className="z-10 max-w-xl text-left">
           <h1 className="text-4xl md:text-5xl font-bold text-black md:text-white mb-4">
             Ready to invest in the{" "}
-            <span className="text-4xl md:text-5xl font-bold tracking-tight text-black ">Planet's Future?</span>
+            <span className="text-4xl md:text-5xl font-bold tracking-tight text-white ">Planet's Future?</span>
           </h1>
           <p className="text-lg text-black md:text-white mb-8 leading-relaxed">
             Join us in building the first economy that grows by healing.

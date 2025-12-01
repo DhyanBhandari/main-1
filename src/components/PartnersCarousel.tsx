@@ -156,7 +156,7 @@ export const PartnersCarousel = () => {
             Get your Planetary Health Index <br />
             <Download className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 font-bold animate-pulse" />
             <div className="text-sm">
-              <p>( Inguidelines with SEEA )</p>
+              <p>(Inguidelines with SEEA)</p>
               </div>
           </button>
         </div>
