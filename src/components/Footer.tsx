@@ -45,7 +45,7 @@ const Footer = () => {
                         <div className="space-y-6">
                             <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Technology</h3>
                             <ul className="space-y-4">
-                                {[{ name: "PHI", path: "/getthereport" }, { name: "Di-NCA", path: "/Data" }, { name: "B-POP", path: "/bpop" }].map((item) => (
+                                {[{ name: "PHI", path: "/ABCDEFramework" }, { name: "Di-NCA", path: "/Data" }, { name: "B-POP", path: "/bpop" }].map((item) => (
                                     <li key={item.name}>
                                         <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
                                             {item.name}

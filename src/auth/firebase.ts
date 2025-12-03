@@ -6,7 +6,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getAnalytics } from 'firebase/analytics';
+import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -22,8 +22,15 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Analytics
-export const analytics = getAnalytics(app);
+// Initialize Analytics only when supported (avoids deprecation warnings)
+let analytics: Analytics | null = null;
+isSupported().then((supported) => {
+  if (supported) {
+    analytics = getAnalytics(app);
+  }
+});
+
+export { analytics };
 
 // Initialize Firebase Authentication
 export const auth = getAuth(app);
