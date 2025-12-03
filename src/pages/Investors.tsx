@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, PieChart, BarChart3, ArrowRight } from "lucide-react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import dataVizBg from "@/assets/data-viz-bg.jpg";
 
 const Investors = () => {
@@ -11,9 +12,9 @@ const Investors = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative py-32 overflow-hidden">
+      <section className="relative py-32 ">
         <div className="absolute inset-0 z-0">
-          <img src={dataVizBg} alt="" className="w-full h-full object-cover opacity-30" />
+          <img src={dataVizBg} alt="" className="w-full h-full object-cover " />
           <div className="absolute inset-0 bg-gradient-overlay" />
         </div>
         <div className="container relative z-10 px-4">
@@ -75,11 +76,11 @@ const Investors = () => {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card className="h-full hover:shadow-elevated transition-all duration-300">
+                <Card className="h-full hover:shadow-elevated transition-all duration-300 bg-[#0d2821]">
                   <CardContent className="p-8 text-center">
                     <feature.icon className="h-16 w-16 mx-auto mb-6 text-accent" />
-                    <h3 className="text-2xl font-bold mb-4 text-primary">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
+                    <h3 className="text-2xl font-bold mb-4 text-white">{feature.title}</h3>
+                    <p className="text-muted-foreground text-white">{feature.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -89,8 +90,8 @@ const Investors = () => {
       </section>
 
       {/* Market Opportunity */}
-      <section className="py-20">
-        <div className="container px-4">
+      <section className="py-20 ">
+        <div className="container px-6 py-12 bg-[#0d2821]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -98,13 +99,13 @@ const Investors = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-6 text-primary">The Market Opportunity</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold mb-6 text-white">The Market Opportunity</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-white">
               A massive, validated market demand with regulatory tailwinds and technological maturation.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          {/* <div className="grid md:grid-cols-3 gap-8 mb-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -149,7 +150,7 @@ const Investors = () => {
                 </CardContent>
               </Card>
             </motion.div>
-          </div>
+          </div> */}
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -158,15 +159,15 @@ const Investors = () => {
             viewport={{ once: true }}
             className="bg-muted p-8 rounded-lg"
           >
-            <h3 className="text-2xl font-bold mb-4 text-primary">Market Drivers</h3>
+            <h3 className="text-2xl font-bold mb-4 text-white">Market Drivers</h3>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-bold text-lg mb-2 text-primary">Regulatory Momentum</h4>
-                <p className="text-muted-foreground">190 countries committed to 30x30 targets. IFRS sustainability standards mandate corporate nature-related disclosures.</p>
+                <h4 className="font-bold text-lg mb-2 text-white">Regulatory Momentum</h4>
+                <p className="text-muted-foreground text-white">190 countries committed to 30x30 targets. IFRS sustainability standards mandate corporate nature-related disclosures.</p>
               </div>
               <div>
-                <h4 className="font-bold text-lg mb-2 text-primary">ESG Demand</h4>
-                <p className="text-muted-foreground">ESG assets projected to exceed $33 trillion by 2026, with acute shortage of high-integrity investment opportunities.</p>
+                <h4 className="font-bold text-lg mb-2 text-white">ESG Demand</h4>
+                <p className="text-muted-foreground text-white">ESG assets projected to exceed $33 trillion by 2026, with acute shortage of high-integrity investment opportunities.</p>
               </div>
             </div>
           </motion.div>
@@ -208,13 +209,15 @@ const Investors = () => {
             </div>
 
             <div className="mt-12 text-center">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-6">
-                <a href="mailto:connect@erthaloka.com">Request Investment Deck <ArrowRight className="ml-2 h-5 w-5" /></a>
+              <Button size="lg" className="bg-[#0d2821] text-white hover:bg-black/90 text-lg px-8 py-6">
+                <a href="mailto:connect@erthaloka.com">Request Investment Deck </a>
               </Button>
             </div>
           </motion.div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };

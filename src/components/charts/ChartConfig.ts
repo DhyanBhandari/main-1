@@ -63,6 +63,15 @@ export const chartColors = {
   dangerLight: 'rgba(239, 68, 68, 0.2)',
 };
 
+// Pillar colors for PHI dashboard
+export const pillarColors = {
+  A: { main: '#3498db', light: 'rgba(52, 152, 219, 0.2)' },  // Atmospheric - Blue
+  B: { main: '#27ae60', light: 'rgba(39, 174, 96, 0.2)' },   // Biodiversity - Green
+  C: { main: '#8e44ad', light: 'rgba(142, 68, 173, 0.2)' },  // Carbon - Purple
+  D: { main: '#e74c3c', light: 'rgba(231, 76, 60, 0.2)' },   // Degradation - Red
+  E: { main: '#f39c12', light: 'rgba(243, 156, 18, 0.2)' },  // Ecosystem - Orange
+};
+
 // Common chart options
 export const commonOptions = {
   responsive: true,

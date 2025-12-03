@@ -17,6 +17,7 @@ import NaturalCapitalSection from "@/components/NaturalCapitalSection";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 
 import { PartnersCarousel } from "@/components/PartnersCarousel";
+import { InfiniteScrollPartners } from "@/components/InfiniteScrollPartners";
 
 const HomePage = () => {
   const { scrollY, scrollYProgress } = useScroll();
@@ -116,7 +117,7 @@ const HomePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <TechCard
                 title="MEASURE"
-                description="AI, Satellite & IoT capture real-time ecosystem intelligence."
+                description="AI, Remote Sensing & IoT capture real-time ecosystem intelligence."
                 //icon={Database}
                 delay={0.1}
                 animationStage="source"
@@ -158,6 +159,8 @@ const HomePage = () => {
         {/* Platform Features (Natural Capital Section) */}
         <NaturalCapitalSection />
 
+        {/* Partners Section */}
+        <InfiniteScrollPartners />
 
         {/* CTA Section with Globe */}
         <div className="container px-4 mx-auto py-24">

@@ -18,7 +18,7 @@ export interface MetricData {
   value: number | null;
   unit?: string;
   description?: string;
-  quality?: 'good' | 'moderate' | 'poor' | 'unavailable';
+  quality?: 'good' | 'moderate' | 'poor' | 'unavailable' | 'supplemented';
   source?: string;
   resolution?: string;
   error?: string;
@@ -141,6 +141,8 @@ export const getQualityColor = (quality: string | undefined): string => {
       return '#22c55e'; // green
     case 'moderate':
       return '#f59e0b'; // amber
+    case 'supplemented':
+      return '#3b82f6'; // blue - data from external API
     case 'poor':
       return '#ef4444'; // red
     case 'unavailable':

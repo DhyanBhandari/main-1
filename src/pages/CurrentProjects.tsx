@@ -14,7 +14,8 @@ const CurrentProjects = () => {
       <HeroSection />
       <StatPanels />
       <AcreageGrid />
-      <ProjectCatalog />
+      {/* Need to add the details of the projects */}
+    {/** <ProjectCatalog /> */}
     
       
       {/* Footer */}

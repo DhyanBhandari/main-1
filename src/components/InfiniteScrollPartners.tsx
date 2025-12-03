@@ -50,8 +50,8 @@ export function InfiniteScrollPartners() {
         <div className="w-full py-20 lg:py-40 bg-muted/30">
             <div className="container mx-auto px-4">
                 <div className="flex flex-col gap-10">
-                    <h2 className="text-xl md:text-3xl md:text-5xl tracking-tighter lg:max-w-xl font-regular text-left text-primary">
-                        Trusted by thousands of businesses worldwide
+                    <h2 className="text-xl md:text-3xl md:text-7xl tracking-tighter lg:max-w-xxl font-regular text-center text-primary">
+                        Partners & Collaborators
                     </h2>
                     <Carousel setApi={setApi} className="w-full">
                         <CarouselContent>

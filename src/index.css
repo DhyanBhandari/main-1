@@ -30,33 +30,41 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    /* Mat Black Theme - Professional Dark UI */
+    --background: 0 0% 8%;              /* #141414 - Mat black background */
+    --foreground: 0 0% 95%;             /* #F2F2F2 - Off-white text */
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 12%;                   /* #1F1F1F - Card background */
+    --card-foreground: 0 0% 95%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 10%;                /* #1A1A1A - Popover background */
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 154 96% 10%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 154 80% 40%;             /* Teal accent - #1DB954 style */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 18%;              /* #2E2E2E - Secondary elements */
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 0 0% 15%;                  /* #262626 - Muted backgrounds */
+    --muted-foreground: 0 0% 65%;       /* #A6A6A6 - Muted text */
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 0% 20%;                 /* #333333 - Accent backgrounds */
+    --accent-foreground: 0 0% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 62% 50%;           /* Red for errors */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 154 96% 10%;
+    --border: 0 0% 20%;                 /* #333333 - Subtle borders */
+    --input: 0 0% 18%;                  /* #2E2E2E - Input backgrounds */
+    --ring: 154 80% 40%;                /* Teal ring */
+
+    /* Chart colors for dark theme */
+    --chart-1: 154 80% 45%;             /* Teal */
+    --chart-2: 199 89% 48%;             /* Blue */
+    --chart-3: 45 93% 58%;              /* Yellow */
+    --chart-4: 280 65% 60%;             /* Purple */
+    --chart-5: 0 72% 51%;               /* Red */
   }
 }
 

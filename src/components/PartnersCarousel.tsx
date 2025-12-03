@@ -20,8 +20,8 @@ const carouselData: CarouselItem[] = [
   },
   {
     id: 2,
-    title: "Satellite Intelligence Platform",
-    description: "High-resolution satellite imagery from Landsat and Sentinel continuously monitors ecosystem health across millions of hectares.",
+    title: "Remote Sensing Platform",
+    description: "High-resolution multispectral imagery and LiDAR data continuously monitors ecosystem health across millions of hectares.",
     category: "Technology",
   },
   {

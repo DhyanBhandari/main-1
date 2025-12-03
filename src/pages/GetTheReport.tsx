@@ -18,7 +18,8 @@ import {
   MapPin,
   Database,
   Download,
-  FileText
+  FileText,
+  Clock
 } from "lucide-react";
 import { useScroll } from "framer-motion";
 import jsPDF from "jspdf";
@@ -28,7 +29,7 @@ import html2canvas from "html2canvas";
 import { BarChart, RadarChart } from "@/components/charts";
 
 // Import API service and types
-import { fetchPHIReport, formatAPIError } from "@/services/phiApi";
+import { fetchPHIReport, formatAPIError, getComprehensiveExternalData } from "@/services/phiApi";
 import {
   PHIResponse,
   PILLAR_CONFIGS,
@@ -36,6 +37,18 @@ import {
   getQualityColor,
   formatMetricValue
 } from "@/types/phi";
+import { ComprehensiveExternalData } from "@/types/weather";
+
+
+// Import Imagery Viewer
+import ImageryViewer from "@/components/ImageryViewer";
+
+// Import metric supplementation service
+import {
+  supplementMetrics,
+  preparePillarRadarData,
+  getDataTimestamp
+} from "@/services/metricSupplementation";
 
 // Icon mapping for pillars
 const PILLAR_ICONS: Record<string, React.ElementType> = {
@@ -68,7 +81,7 @@ const PILLAR_INFO: Record<string, { summary: string; importance: string }> = {
     importance: "Clean air is fundamental to human health, ecosystem vitality, and climate stability"
   },
   B: {
-    summary: "Tracks vegetation health, plant density, and land cover patterns using satellite imagery",
+    summary: "Tracks vegetation health, plant density, and land cover patterns using multispectral imagery",
     importance: "Healthy vegetation produces oxygen, absorbs CO2, prevents erosion, and supports wildlife"
   },
   C: {
@@ -228,6 +241,10 @@ const GetTheReport = () => {
   const [phiData, setPhiData] = useState<PHIResponse | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
+  // External Data State (for metric supplementation)
+  const [externalData, setExternalData] = useState<ComprehensiveExternalData | null>(null);
+  const [dataTimestamp, setDataTimestamp] = useState<string>('');
+
   // PDF Download function
   const downloadPDF = async () => {
     if (!reportRef.current || !phiData) return;
@@ -275,7 +292,7 @@ const GetTheReport = () => {
 
       pdf.setFontSize(11);
       pdf.setTextColor(100, 100, 100);
-      pdf.text('Raw Satellite Data Analysis', pageWidth / 2, yPosition, { align: 'center' });
+      pdf.text('Remote Sensing Data Analysis', pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 8;
 
       // Location box
@@ -464,6 +481,44 @@ const GetTheReport = () => {
     fetchData();
   }, [latitude, longitude]);
 
+  // Fetch External data on mount (for metric supplementation into pillars)
+  useEffect(() => {
+    const fetchExternalData = async () => {
+      if (!latitude || !longitude) {
+        return;
+      }
+
+      try {
+        // Fetch comprehensive external data for pillar metrics
+        const comprehensiveResult = await getComprehensiveExternalData(latitude, longitude);
+
+        setExternalData(comprehensiveResult);
+        setDataTimestamp(getDataTimestamp());
+
+        console.log('[GetTheReport] External data fetched:', {
+          airQuality: comprehensiveResult?.air_quality?.primary_aqi,
+          soil: comprehensiveResult?.soil?.available,
+          weather: comprehensiveResult?.weather?.available
+        });
+      } catch (err) {
+        console.error('External data fetch error:', err);
+      }
+    };
+
+    fetchExternalData();
+  }, [latitude, longitude]);
+
+  // Supplement PHI data with external data when both are available
+  useEffect(() => {
+    if (phiData && externalData) {
+      const supplemented = supplementMetrics(phiData, externalData);
+      if (supplemented !== phiData) {
+        setPhiData(supplemented);
+        console.log('[GetTheReport] PHI data supplemented with external API data');
+      }
+    }
+  }, [externalData]); // Only run when externalData changes
+
   // Prepare bar chart data from raw metrics
   const prepareBarChartData = (pillarKey: string) => {
     if (!phiData?.pillars?.[pillarKey]) return null;
@@ -524,7 +579,7 @@ const GetTheReport = () => {
         <section className="pt-32 pb-16 bg-gradient-to-b from-[#0d2821] to-[#065f46] min-h-screen flex items-center justify-center">
           <div className="text-center text-white">
             <Loader2 className="w-16 h-16 animate-spin mx-auto mb-6" />
-            <h2 className="text-2xl font-bold mb-2">Querying Satellite Data</h2>
+            <h2 className="text-2xl font-bold mb-2">Analyzing Remote Sensing Data</h2>
             <p className="text-green-100">
               Analyzing location: {latitude?.toFixed(4)}°, {longitude?.toFixed(4)}°
             </p>
@@ -579,7 +634,7 @@ const GetTheReport = () => {
               Planetary Health Report
             </h1>
             <p className="text-lg sm:text-xl text-green-100 mb-4">
-              Raw Satellite Data Analysis
+              Remote Sensing Data Analysis
             </p>
 
             {/* Location Badge */}
@@ -615,18 +670,18 @@ const GetTheReport = () => {
         </div>
       </section>
 
-      {/* Raw Data Overview - Radar Chart */}
-      <section className="py-16 sm:py-20">
+      {/* Environmental Overview - Radar Chart */}
+      <section className="py-16 sm:py-20 bg-gradient-to-b from-[#065f46] to-white">
         <div className="container px-4 mx-auto">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl font-bold text-center text-[#0d2821] mb-4"
+            className="text-3xl sm:text-4xl font-bold text-center text-white mb-4"
           >
             Environmental Overview
           </motion.h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+          <p className="text-center text-green-100 mb-12 max-w-2xl mx-auto">
             Normalized key metrics from each environmental pillar (0-100 scale)
           </p>
 
@@ -654,7 +709,38 @@ const GetTheReport = () => {
         </div>
       </section>
 
-      {/* Raw Metrics by Pillar */}
+      {/* Earth Observation Imagery Section */}
+      <section className="py-16 sm:py-20">
+        <div className="container px-4 mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-center text-[#0d2821] mb-4">
+              Earth Observation Imagery
+            </h2>
+            <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+              Visual analysis from multispectral, thermal, and LiDAR data sources
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="max-w-4xl mx-auto"
+          >
+            <ImageryViewer
+              latitude={latitude}
+              longitude={longitude}
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pillar Details - Raw Metrics */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="container px-4 mx-auto">
           <motion.h2
@@ -663,7 +749,7 @@ const GetTheReport = () => {
             viewport={{ once: true }}
             className="text-3xl sm:text-4xl font-bold text-center text-[#0d2821] mb-4"
           >
-            Raw Satellite Data
+            Remote Sensing Data
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -672,7 +758,7 @@ const GetTheReport = () => {
             transition={{ delay: 0.1 }}
             className="text-center text-gray-600 mb-6 max-w-3xl mx-auto"
           >
-            Environmental measurements captured by Earth observation satellites.
+            Environmental measurements captured by remote sensing instruments.
             Each metric provides insight into specific aspects of planetary health.
           </motion.p>
 
@@ -687,7 +773,7 @@ const GetTheReport = () => {
             <h4 className="font-semibold text-green-800 mb-3">Understanding the Data</h4>
             <div className="grid md:grid-cols-2 gap-4 text-sm text-green-700">
               <div>
-                <p className="mb-2"><span className="font-medium">Raw Values:</span> Actual measurements from satellite sensors in their native units</p>
+                <p className="mb-2"><span className="font-medium">Raw Values:</span> Actual measurements from remote sensing instruments in their native units</p>
                 <p><span className="font-medium">Normalized Charts:</span> Values scaled to 0-100 for easy comparison across different metrics</p>
               </div>
               <div>
@@ -737,18 +823,22 @@ const GetTheReport = () => {
                           </p>
                         </>
                       )}
-                      {pillar.data_date && (
-                        <p className="text-xs text-gray-400 mt-2">
-                          Data collected: {pillar.data_date}
-                        </p>
-                      )}
+                      {/* Timestamp display */}
+                      <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          {pillar.data_date ? `Captured: ${pillar.data_date}` : ''}
+                          {pillar.data_date && dataTimestamp ? ' | ' : ''}
+                          {dataTimestamp ? `Real-time: ${dataTimestamp}` : ''}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Raw Values Grid */}
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Raw Values</h4>
+                      <h4 className="text-lg font-semibold text-gray-800 mb-4">All Metrics ({Object.keys(pillar.metrics).length})</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {Object.entries(pillar.metrics).map(([metricName, metric]) => {
                           const metricInfo = getMetricInfo(metricName);
@@ -784,30 +874,37 @@ const GetTheReport = () => {
                       </div>
                     </div>
 
-                    {/* Bar Chart Visualization */}
+                    {/* Radar Chart Visualization - All metrics for this pillar */}
                     <div>
                       <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                        Normalized Comparison (0-100)
+                        Pillar Radar Chart
                       </h4>
-                      {chartData && chartData.labels.length > 0 ? (
-                        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                          <BarChart
-                            labels={chartData.labels}
-                            datasets={[
-                              {
-                                label: pillar.pillar_name,
-                                data: chartData.values,
-                                backgroundColor: chartData.color,
-                              }
-                            ]}
-                            height={250}
-                          />
-                        </div>
-                      ) : (
-                        <div className="bg-white rounded-xl p-8 border border-gray-100 text-center text-gray-400">
-                          No numeric data available for visualization
-                        </div>
-                      )}
+                      {(() => {
+                        const radarData = preparePillarRadarData(pillar.metrics);
+                        return radarData.labels.length > 0 ? (
+                          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                            <RadarChart
+                              labels={radarData.labels}
+                              datasets={[
+                                {
+                                  label: pillar.pillar_name,
+                                  data: radarData.values,
+                                  backgroundColor: `${pillar.pillar_color}30`,
+                                  borderColor: pillar.pillar_color,
+                                }
+                              ]}
+                              height={280}
+                            />
+                            <p className="text-xs text-gray-400 text-center mt-2">
+                              Values normalized 0-100 (higher = better environmental health)
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-white rounded-xl p-8 border border-gray-100 text-center text-gray-400">
+                            No data available for radar visualization
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </motion.div>
@@ -914,7 +1011,7 @@ const GetTheReport = () => {
               Download Your Report
             </h2>
             <p className="text-gray-600 mb-8">
-              Get a complete PDF copy of this Planetary Health Report with all raw satellite data,
+              Get a complete PDF copy of this Planetary Health Report with all remote sensing data,
               metric explanations, and environmental impact assessments.
             </p>
             <button

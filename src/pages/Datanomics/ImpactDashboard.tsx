@@ -5,14 +5,11 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, Wind, Thermometer, Droplets, Sun, Gauge, RefreshCw, Activity } from "lucide-react";
+import { Wind, Thermometer, Droplets, RefreshCw, Activity } from "lucide-react";
 import { useEnvironmentalScore } from "@/hooks/useEnvironmentalScore";
-import { useSensorData } from "@/hooks/useSensorData";
 import {
   RadialGauge,
   PolarAreaChart,
-  ProgressiveLine,
-  BubbleChart,
   BarChart
 } from "@/components/charts";
 
@@ -94,9 +91,6 @@ const ImpactDashboard = () => {
     refresh,
   } = useEnvironmentalScore(50, 7);
 
-  // Get historical sensor readings for charts - REAL DATA ONLY
-  const { readings: indoorReadings } = useSensorData('indoor', 50, 7);
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -129,58 +123,6 @@ const ImpactDashboard = () => {
       ],
     };
   }, [indoorScore]);
-
-  // Prepare progressive line chart data from historical readings
-  const lineChartData = useMemo(() => {
-    if (!indoorReadings || indoorReadings.length === 0) {
-      return { labels: [], datasets: [] };
-    }
-
-    // Get last 10 readings and format time
-    const recentReadings = indoorReadings.slice(-10);
-    const labels = recentReadings.map((r: any) => {
-      const date = new Date(r.time || r.createdAt);
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    });
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'CO2 Level',
-          data: recentReadings.map((r: any) => r.co2 || 0),
-          borderColor: 'rgb(22, 163, 74)',
-          backgroundColor: 'rgba(22, 163, 74, 0.1)',
-          fill: true,
-        },
-        {
-          label: 'Temperature',
-          data: recentReadings.map((r: any) => (r.temperature || 0) * 10), // Scale for visibility
-          borderColor: 'rgb(59, 130, 246)',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          fill: true,
-        },
-      ],
-    };
-  }, [indoorReadings]);
-
-  // Prepare bubble chart data from readings
-  const bubbleData = useMemo(() => {
-    if (!indoorReadings || indoorReadings.length === 0) {
-      return [{ label: 'CO2 Readings', data: [] }];
-    }
-
-    const bubbles = indoorReadings.slice(-20).map((r: any) => {
-      const date = new Date(r.time || r.createdAt);
-      return {
-        x: date.getHours() + date.getMinutes() / 60,
-        y: r.co2 || 400,
-        r: Math.min(Math.max((r.co2 || 400) / 100, 3), 15), // Bubble size based on CO2
-      };
-    });
-
-    return [{ label: 'CO2 Readings', data: bubbles }];
-  }, [indoorReadings]);
 
   // Bar chart data for metric comparison
   const barChartData = useMemo(() => {
@@ -315,46 +257,11 @@ const ImpactDashboard = () => {
             </div>
           </motion.div>
 
-          {/* Progressive Line Chart */}
+          {/* Bar Chart - Score Comparison */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={isVisible ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100"
-          >
-            <div className="mb-6">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                Trend Analysis
-              </h3>
-              <p className="text-sm text-gray-500">
-                Recent readings over time
-              </p>
-            </div>
-            <div className="h-[280px] sm:h-[320px] lg:h-[350px]">
-              {lineChartData.labels.length > 0 ? (
-                <ProgressiveLine
-                  labels={lineChartData.labels}
-                  datasets={lineChartData.datasets}
-                  height={350}
-                  animateOnScroll={true}
-                  gradientFill={true}
-                />
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-400">
-                  {loading ? 'Loading...' : 'No historical data'}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Second Row - Bar Chart + Bubble Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* Bar Chart */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.5 }}
             className="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100"
           >
             <div className="mb-6">
@@ -365,47 +272,16 @@ const ImpactDashboard = () => {
                 Individual metric scores
               </p>
             </div>
-            <div className="h-[280px] sm:h-[300px]">
+            <div className="h-[280px] sm:h-[320px] lg:h-[350px]">
               {hasData ? (
                 <BarChart
                   labels={barChartData.labels}
                   datasets={barChartData.datasets}
-                  height={300}
+                  height={350}
                 />
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-400">
                   {loading ? 'Loading...' : 'No data available'}
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Bubble Chart */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100"
-          >
-            <div className="mb-6">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                Reading Density
-              </h3>
-              <p className="text-sm text-gray-500">
-                CO2 readings by time of day (bubble size = magnitude)
-              </p>
-            </div>
-            <div className="h-[280px] sm:h-[300px]">
-              {bubbleData[0].data.length > 0 ? (
-                <BubbleChart
-                  datasets={bubbleData}
-                  height={300}
-                  xLabel="Hour of Day"
-                  yLabel="CO2 (ppm)"
-                />
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-400">
-                  {loading ? 'Loading...' : 'No readings available'}
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Satellite, Cpu, Activity, ArrowRight } from "lucide-react";
+import { Radar, Cpu, Activity, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import measureImg from "@/assets/measure.jpg";
@@ -16,7 +16,7 @@ const Measure = () => {
       <Header />
 
       {/* Hero Section with Wavy Background */}
-      <WavyBackground className="max-w-4xl mx-auto pb-40" backgroundFill="white" colors={["#22c55e", "#16a34a", "#4ade80", "#86efac", "#bbf7d0"]}>
+      <WavyBackground className="max-w-4xl mx-auto pb-5" backgroundFill="white" colors={["#22c55e", "#16a34a", "#4ade80", "#86efac", "#bbf7d0"]}>
         <div className="container relative z-10 px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -24,21 +24,15 @@ const Measure = () => {
             transition={{ duration: 0.8 }}
             className="flex flex-col items-center"
           >
-            <div className="inline-flex items-center justify-center px-4 py-1.5 mb-8 rounded-full bg-green-50 border border-green-100 shadow-sm">
-              <span className="text-sm font-bold tracking-widest text-green-700 uppercase">
-                MEASURE
-              </span>
-            </div>
-
             <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight text-gray-900 leading-[1.1]">
               Real-time Ecosystem <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r #0D2821">
+              <span className=" text-transparent bg-clip-text bg-gradient-to-r from-[#0D2821] to-[#023030]">
                 Intelligence
               </span>
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto font-medium leading-relaxed">
-              Our platform leverages AI, satellite imagery, and ground-based IoT sensors to capture ecosystem performance with unprecedented precision and scale.
+              Our platform leverages AI, multispectral & LiDAR data, and ground-based IoT sensors to capture ecosystem performance with unprecedented precision and scale.
             </p>
 
             <ScrollIndicator />
@@ -68,9 +62,9 @@ const Measure = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                icon: Satellite,
-                title: "Satellite Intelligence",
-                description: "High-resolution satellite imagery from Landsat and Sentinel continuously monitors ecosystem health and land use.",
+                icon: Radar,
+                title: "Remote Sensing Intelligence",
+                description: "High-resolution multispectral imagery and LiDAR data continuously monitors ecosystem health and land use.",
                 href: "/technology"
               },
               {
@@ -126,7 +120,7 @@ const Measure = () => {
               <div className="space-y-4">
                 <div className="border-l-4 border-green-500 pl-4">
                   <h3 className="text-xl font-bold mb-2 text-gray-900">Multi-Source Integration</h3>
-                  <p className="text-gray-600">Combine satellite imagery, IoT sensors, and AI analysis for a complete picture of ecosystem health.</p>
+                  <p className="text-gray-600">Combine remote sensing data, IoT sensors, and AI analysis for a complete picture of ecosystem health.</p>
                 </div>
 
                 <div className="border-l-4 border-teal-500 pl-4">

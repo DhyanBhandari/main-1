@@ -25,16 +25,26 @@ const getCollectionName = (type: SensorType): string => {
 
 /**
  * Parse Firestore document to SensorReading
+ * Handles multiple possible field naming conventions
  */
 const parseDocument = (doc: any): SensorReading => {
   const data = doc.data();
+
+  // Log raw data for debugging (remove in production)
+  console.log('[SensorService] Raw Firestore data:', data);
+
   return {
     id: doc.id,
-    co2: data.co2 || 0,
-    humidity: data.humidity || 0,
-    light: data.light || 0,
-    pressure: data.pressure || 0,
-    temperature: data.temperature || 0,
+    // CO2 variations
+    co2: data.co2 ?? data.CO2 ?? data.Co2 ?? data.ppm ?? 0,
+    // Humidity variations
+    humidity: data.humidity ?? data.Humidity ?? data.hum ?? data.Hum ?? data.rh ?? data.RH ?? 0,
+    // Light variations
+    light: data.light ?? data.Light ?? data.lux ?? data.Lux ?? 0,
+    // Pressure variations
+    pressure: data.pressure ?? data.Pressure ?? data.press ?? data.hPa ?? 0,
+    // Temperature variations
+    temperature: data.temperature ?? data.Temperature ?? data.temp ?? data.Temp ?? 0,
     device: data.device || 'outdoor',
     time: data.time || '',
     createdAt: data.createdAt?.toDate() || new Date(),

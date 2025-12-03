@@ -373,7 +373,7 @@ const PHIReportFormContent = ({ onClose }: PHIReportFormContentProps) => {
         Get Your PHI Report
       </h2>
       <p className="text-gray-600 mb-6">
-        Enter your location coordinates to analyze satellite data
+        Enter your location coordinates to analyze environmental data
       </p>
 
       {error && (
@@ -451,7 +451,7 @@ const PHIReportFormContent = ({ onClose }: PHIReportFormContentProps) => {
           In guidelines with UN-SEEA framework for environmental accounting
         </p>
         <p className="text-xs text-gray-400 text-center mt-1">
-          Analysis takes 25-35 seconds using satellite data
+          Analysis takes 25-35 seconds using remote sensing data
         </p>
       </form>
     </div>

@@ -1,4 +1,4 @@
-// DNAC PAGE IN HOMEPAGE
+// DNAC or Di-NCA PAGE IN HOMEPAGE
 import { motion } from "framer-motion";
 import { Database, ShieldCheck, TrendingUp } from "lucide-react";
 import measureImg from "@/assets/measure.png";
@@ -31,13 +31,13 @@ const features = [
     {
         title: "Real-time Intelligence",
         description:
-            "AI, IoT sensors, and satellite imagery work together to capture comprehensive ecosystem data in real-time.",
+            "AI, IoT sensors, and remote sensing data work together to capture comprehensive ecosystem data in real-time.",
         icon: Database,
     },
     {
         title: "Trusted Verification",
         description:
-            "The Datanomics Engine ensures complete data integrity and transparency, creating a trusted foundation.",
+            "The Technology ensures complete data integrity and transparency, creating a trusted foundation.",
         icon: ShieldCheck,
     },
     {

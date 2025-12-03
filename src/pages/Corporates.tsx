@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Target, Award, Globe, ArrowRight } from "lucide-react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const Corporates = () => {
   return (
@@ -39,7 +40,7 @@ const Corporates = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-4 text-primary">Why Leading Companies Choose ErthaLoka</h2>
+            <h2 className="text-4xl font-bold mb-4 text-primary  px-4 inline-block">Why Leading Companies Choose ErthaLoka</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Meet regulatory requirements while creating real environmental impact.
             </p>
@@ -70,11 +71,11 @@ const Corporates = () => {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card className="h-full hover:shadow-elevated transition-all duration-300">
+                <Card className="h-full hover:shadow-elevated transition-all duration-300 bg-[#0d2821]">
                   <CardContent className="p-8 text-center">
                     <feature.icon className="h-16 w-16 mx-auto mb-6 text-accent" />
-                    <h3 className="text-2xl font-bold mb-4 text-primary">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
+                    <h3 className="text-2xl font-bold mb-4 text-white">{feature.title}</h3>
+                    <p className="text-muted-foreground text-white">{feature.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -150,12 +151,14 @@ const Corporates = () => {
             <p className="text-xl mb-8 opacity-90">
               Partner with ErthaLoka to create verifiable, transparent natural capital assets.
             </p>
-            <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-6">
-              <a href="mailto:connect@erthaloka.com">Schedule a Consultation <ArrowRight className="ml-2 h-5 w-5" /></a>
+            <Button size="lg" className="bg-[#0d2821] text-white hover:bg-black/90 text-lg px-8 py-6">
+              <a href="mailto:connect@erthaloka.com">Schedule a Consultation </a>
             </Button>
           </motion.div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };

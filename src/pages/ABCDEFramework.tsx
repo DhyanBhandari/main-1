@@ -26,21 +26,15 @@ const ABCDEFramework = () => {
             transition={{ duration: 0.8 }}
             className="flex flex-col items-center"
           >
-            <div className="inline-flex items-center justify-center px-4 py-1.5 mb-8 rounded-full bg-green-50 border border-green-100 shadow-sm">
-              <span className="text-sm font-bold tracking-widest text-green-700 uppercase">
-                VALUE
-              </span>
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight text-gray-900 leading-[1.1]">
-              Quantifying Planetary Health To <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r #0D2821">
-                Value Natural Capital
+            <h1 className="text-5xl md:text-6xl font-bold mb-8 tracking-tight text-gray-900 leading-[1.1]">
+              Quantifying Planetary Health  <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0D2821] to-[#023030]">
+               To Value Natural Capital
               </span>
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto font-medium leading-relaxed">
-              ErthaLoka's Proprietary measures ecosystem performance across five dimensions to create the Planetary Health Index (PHI).
+              ErthaLoka's Technology measures ecosystem performance across five dimensions to create the Planetary Health Index (PHI).
             </p>
 
             <ScrollIndicator />
@@ -64,13 +58,13 @@ const ABCDEFramework = () => {
               Planetary Health Index (PHI)
             </h2>
             <p className="text-2xl mb-8 opacity-90">
-              We don't just protect nature — we price its performance.
+              We don't just protect nature , we price its performance.
             </p>
             <p className="text-lg mb-12 opacity-80">
               The PHI aggregates all five Proprietary dimensions into a single, comprehensive metric that represents the overall health and value of an ecosystem. This standardized index enables investors and stakeholders to compare natural capital assets, track performance over time, and make informed decisions based on verifiable planetary health data.
             </p>
-            <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-6">
-              <a href="mailto:connect@erthaloka.com">Request a Demo <ArrowRight className="ml-2 h-5 w-5" /></a>
+            <Button size="lg" className="bg-white text-[#0D2821] hover:bg-[#0D2821]/90 text-lg px-8 py-6">
+              <a href="mailto:connect@erthaloka.com">Request a Demo </a>
             </Button>
           </motion.div>
         </div>
@@ -99,7 +93,7 @@ const ABCDEFramework = () => {
               {
                 title: "1. Data Collection",
                 description:
-                  "Gather multi-source ecosystem data from satellites, IoT sensors, and ground verification. We collect over 50 data points per hectare to ensure a comprehensive baseline.",
+                  "Gather multi-source ecosystem data from remote sensing platforms, IoT sensors, and ground verification. We collect over 50 data points per hectare to ensure a comprehensive baseline.",
                 content: (
                   <div className="h-full w-full bg-[linear-gradient(to_bottom_right,#06b6d4,#10b981)] flex items-center justify-center text-white">
                     <div className="text-6xl font-bold">1</div>

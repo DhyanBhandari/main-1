@@ -140,12 +140,12 @@ const SensorMetrics = () => {
             Live Environmental Data
           </h2>
           <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto mb-4">
-            Real-time sensor metrics from the planetary intelligence network
+            Real-time IOT metrics from the planetary intelligence network
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="text-sm text-green-700 font-medium">
-              Data sourced from one of our EPA protected ecosystems
+              Data sourced from one of our EPA Collectives
             </span>
           </div>
         </div>

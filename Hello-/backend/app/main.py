@@ -17,6 +17,7 @@ load_dotenv()
 
 from app.api import routes
 from app.api import sensor_routes
+from app.api import satellite_routes
 from app.services.earth_engine import initialize_ee
 from app.config import PDF_OUTPUT_DIR
 
@@ -67,6 +68,7 @@ app.mount("/downloads", StaticFiles(directory=str(PDF_OUTPUT_DIR)), name="downlo
 # Include API routes
 app.include_router(routes.router, prefix="/api", tags=["Planetary Health"])
 app.include_router(sensor_routes.router, prefix="/api", tags=["Sensor Data"])
+app.include_router(satellite_routes.router, prefix="/api", tags=["Satellite Imagery"])
 
 
 @app.get("/")
@@ -80,6 +82,12 @@ async def root():
             "query": "/api/query",
             "pdf": "/api/pdf",
             "health": "/api/health",
+            "satellite": {
+                "images": "/api/satellite/images",
+                "image": "/api/satellite/image",
+                "legend": "/api/satellite/legend",
+                "types": "/api/satellite/types"
+            },
             "sensors": {
                 "indoor_readings": "/api/sensors/indoor/readings",
                 "outdoor_readings": "/api/sensors/outdoor/readings",

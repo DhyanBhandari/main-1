@@ -3,7 +3,7 @@ import { useState } from "react";
 import { PartnerFormModal } from "@/components/PartnerFormModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Cpu, Satellite, Database, Lock } from "lucide-react";
+import { Cpu, Radar, Database, Lock } from "lucide-react";
 import Header from "@/components/Header";
 import dataVizBg from "@/assets/data-viz-bg.jpg";
 import { TechCard } from "@/components/ui/tech-card";
@@ -28,15 +28,9 @@ const Technology = () => {
             transition={{ duration: 0.8 }}
             className="flex flex-col items-center"
           >
-            <div className="inline-flex items-center justify-center px-4 py-1.5 mb-8 rounded-full bg-green-50 border border-green-100 shadow-sm">
-              <span className="text-sm font-bold tracking-widest text-green-700 uppercase">
-                PARTNER
-              </span>
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight text-gray-900 leading-[1.1]">
+            <h1 className="text-5xl md:text-6xl font-bold mb-8 tracking-tight text-gray-900 leading-[1.1]">
               Building a Modern, Scalable Technology for <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r #0D2821">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0D2821] to-[#023030]">
                 Planet Preservation
               </span>
             </h1>
@@ -63,12 +57,12 @@ const Technology = () => {
             className="text-center mb-24"
           >
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-gray-900 mb-6">Our Technology Stack</h2>
-            <p className="text-xl text-gray-500 max-w-2xl mx-auto">Combining AI, satellite imagery, IoT sensors, and blockchain to power natural capital markets.</p>
+            <p className="text-xl text-gray-500 max-w-2xl mx-auto">Combining AI, multispectral imagery, IoT sensors, and blockchain to power natural capital markets.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
-              { icon: Satellite, title: "Satellite & Remote Sensing", description: "", href: "/technology" },
+              { icon: Radar, title: "LiDAR & Remote Sensing", description: "", href: "/technology" },
               { icon: Cpu, title: "Machine Learning & AI", description: "", href: "/technology" },
               { icon: Database, title: "IoT & Ground Sensors", description: "", href: "/technology" },
               { icon: Lock, title: "Blockchain & Security", description: "", href: "/technology" },

@@ -32,24 +32,21 @@ const About = () => {
         <Header />
 
         {/* Hero Section */}
-       {/* <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
-          {/* Animated Background for Hero - kept for Glass effect but blended */}
-          <div className="bg-img-[url('/planet__.png')]" />
-
+        <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden pt-32">
           <div className="container px-4 relative z-10">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="glass-card-hero max-w-5xl mx-auto p-8 md:p-16 text-center"
+              className="max-w-5xl mx-auto p-8 md:p-16 text-center bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl"
             >
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
               >
-                <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text bg-#0D2821">
-                  World's First Planetary Asset Preservation Company 
+                <h1 className="text-5xl md:text-7xl font-bold mb-6 text-[#0D2821]">
+                  World's First Planetary Asset Preservation Company
                 </h1>
               </motion.div>
 
@@ -58,16 +55,16 @@ const About = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
               >
-                <p className="text-2xl md:text-3xl mb-8 font-light text-foreground/80">
+                <p className="text-2xl md:text-3xl mb-8 font-light text-gray-700">
                   Where People, Planet & Purpose Thrive Together
                 </p>
-                <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl text-[#0D2821] max-w-3xl mx-auto leading-relaxed">
                   Join us in building the first economy that grows by healing. We are redefining value by anchoring it to the health of our world.
                 </p>
               </motion.div>
             </motion.div>
           </div>
-        { /* </section> */} 
+        </section> 
 
         {/* Mission Section */}
         <section className="py-24 relative">
@@ -90,7 +87,7 @@ const About = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-6 left-6 text-white">
-                    <p className="font-mono text-sm text-primary-glow">EST. 2024</p>
+                    {/* <p className="font-mono text-sm text-primary-glow">EST. 2025</p> */}
                     <p className="font-bold text-lg">Planetary Regeneration</p>
                   </div>
                 </div>
@@ -242,8 +239,8 @@ const About = () => {
           </div>
         </section>
 
-        {/* Advisory Board & Team */}
-        <TeamCarousel />
+        {/* Advisory Board & Team
+        <TeamCarousel /> */}
 
         {/* Incubators */}
         <InfiniteScrollPartners />

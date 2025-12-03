@@ -18,6 +18,9 @@ import NotFound from "@/pages/NotFound";
 import CurrentProjects from "@/pages/CurrentProjects";
 import Data from "./pages/Data";
 import GetTheReport from "@/pages/GetTheReport";
+import BPOP from "@/pages/BPOP";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsOfService from "@/pages/TermsOfService";
 import { AuthProvider } from "@/auth";
 
 const queryClient = new QueryClient();
@@ -38,6 +41,9 @@ const AnimatedRoutes = () => {
         <Route path="/about" element={<PageTransition><About /></PageTransition>} />
         <Route path="/Data" element={<PageTransition><Data /></PageTransition>} />
         <Route path="/getthereport" element={<PageTransition><GetTheReport /></PageTransition>} />
+        <Route path="/bpop" element={<PageTransition><BPOP /></PageTransition>} />
+        <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+        <Route path="/terms-of-service" element={<PageTransition><TermsOfService /></PageTransition>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>

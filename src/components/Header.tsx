@@ -132,7 +132,7 @@ const Header = () => {
                 <ul className="flex flex-col w-[140px] gap-1 p-3 bg-white/80 backdrop-blur-xl backdrop-saturate-150 rounded-xl shadow-xl shadow-gray-200/50 border border-white/40">
                   <li>
                     <Link
-                      to="/technology"
+                      to="/getthereport"
                       className="group flex items-center justify-center gap-3 rounded-lg p-2 leading-none no-underline outline-none transition-all hover:bg-green-50/30 hover:backdrop-blur-sm focus:bg-green-50/30"
                       role="menuitem"
                     >
@@ -154,13 +154,13 @@ const Header = () => {
                         <Cpu className="h-4 w-4" />
                       </div> */}
                       <div className="text-sm font-medium text-gray-900 group-hover:text-green-800">
-                        DNAC
+                          Di-NCA
                       </div>
                     </Link>
                   </li>
                   <li>
                     <Link
-                      to="/BPOP"
+                      to="/bpop"
                       className="group flex items-center justify-center gap-3 rounded-lg p-2 leading-none no-underline outline-none transition-all hover:bg-green-50/30 hover:backdrop-blur-sm focus:bg-green-50/30"
                       role="menuitem"
                     >
@@ -168,7 +168,7 @@ const Header = () => {
                         <Cpu className="h-4 w-4" />
                       </div> */}
                       <div className="text-sm font-medium text-gray-900 group-hover:text-green-800">
-                        B-POP
+                        BLOCKCHAIN
                       </div>
                     </Link>
                   </li>
@@ -188,7 +188,7 @@ const Header = () => {
                   )
                 }
               >
-                EPA
+                EPA Collectives
               </NavLink>
             </NavigationMenuItem>
 
@@ -274,9 +274,9 @@ const Header = () => {
                 {/* Technology Section */}
                 <div className="space-y-3">
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Technology</h3>
-                  <Link to="/technology" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>PHI</Link>
+                  <Link to="/getthereport" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>PHI</Link>
                   <Link to="/Data" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>DNAC</Link>
-                  <Link to="/BPOP" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>B-POP</Link>
+                  <Link to="/bpop" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>B-POP</Link>
                 </div>
 
                 {/* Company Section */}

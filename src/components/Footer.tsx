@@ -1,21 +1,20 @@
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo-new.png";
-import { Facebook, Twitter, Linkedin, Instagram, ArrowRight } from "lucide-react";
 
 const Footer = () => {
     return (
-        <footer className="bg-#0D2821 border-t border-gray-100 pt-16 pb-8 ">
+        <footer className="relative z-50 bg-white border-t border-gray-100 pt-16 pb-8">
             <div className="container px-4 mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-16 mb-16">
                     {/* Brand Column */}
                     <div className="lg:col-span-4 space-y-6">
                         <Link to="/" className="block">
                             <img src={logo} alt="ErthaLoka Logo" className="h-10 w-auto" />
                         </Link>
-                        <p className="text-gray-500 leading-relaxed max-w-sm">
+                        <p className="text-[#0D2821] leading-relaxed max-w-sm">
                             We turn the planet's health into its most valuable asset. Join us in building the first economy that grows by healing.
                         </p>
-                        <div className="flex items-center gap-4">
+                        {/* <div className="flex items-center gap-4">
                             {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
                                 <a
                                     key={i}
@@ -25,17 +24,17 @@ const Footer = () => {
                                     <Icon className="w-5 h-5" />
                                 </a>
                             ))}
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Links Columns */}
                     <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-8">
                         <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Platform</h3>
+                            <h3 className="text-sm font-semibold tracking-wider text-[#0D2821] uppercase">Solutions</h3>
                             <ul className="space-y-4">
-                                {[{ name: "Measure", path: "/measure" }, { name: "Verify", path: "/verify" }, { name: "Proprietary", path: "/abcde-framework" }, { name: "Marketplace", path: "/current-projects" }].map((item) => (
+                                {[{ name: "Measure", path: "/measure" }, { name: "Verify", path: "/verify" }, { name: "Value", path: "/abcde-framework" }].map((item) => (
                                     <li key={item.name}>
-                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block">
+                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
                                             {item.name}
                                         </Link>
                                     </li>
@@ -44,11 +43,11 @@ const Footer = () => {
                         </div>
 
                         <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Use Cases</h3>
+                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Technology</h3>
                             <ul className="space-y-4">
-                                {[{ name: "Investors", path: "/investors" }, { name: "Corporates", path: "/corporates" }, { name: "Communities", path: "#" }, { name: "Governments", path: "#" }].map((item) => (
+                                {[{ name: "PHI", path: "/getthereport" }, { name: "Di-NCA", path: "/Data" }, { name: "B-POP", path: "/bpop" }].map((item) => (
                                     <li key={item.name}>
-                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block">
+                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
                                             {item.name}
                                         </Link>
                                     </li>
@@ -59,9 +58,9 @@ const Footer = () => {
                         <div className="space-y-6">
                             <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Company</h3>
                             <ul className="space-y-4">
-                                {[{ name: "About Us", path: "/about" }, { name: "Technology", path: "/technology" }, { name: "Careers", path: "#" }, { name: "Blog", path: "#" }].map((item) => (
+                                {[{ name: "About Us", path: "/about" }, { name: "Technology", path: "/technology" }, { name: "EPA Collectives", path: "/projects/current" }].map((item) => (
                                     <li key={item.name}>
-                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block">
+                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
                                             {item.name}
                                         </Link>
                                     </li>
@@ -70,20 +69,16 @@ const Footer = () => {
                         </div>
 
                         <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Stay Updated</h3>
-                            <div className="space-y-4">
-                                <p className="text-sm text-gray-500">Subscribe to our newsletter for the latest updates.</p>
-                                <div className="relative">
-                                    <input
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
-                                    />
-                                    <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                                        <ArrowRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
+                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Use Cases</h3>
+                            <ul className="space-y-4">
+                                {[{ name: "Investors", path: "/investors" }, { name: "Corporates", path: "/corporates" }].map((item) => (
+                                    <li key={item.name}>
+                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
+                                            {item.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -93,8 +88,8 @@ const Footer = () => {
                         © {new Date().getFullYear()} ErthaLoka. All rights reserved.
                     </p>
                     <div className="flex items-center gap-8">
-                        <Link to="#" className="text-sm text-gray-400 hover:text-green-600 transition-colors">Privacy Policy</Link>
-                        <Link to="#" className="text-sm text-gray-400 hover:text-green-600 transition-colors">Terms of Service</Link>
+                        <Link to="/privacy-policy" className="text-sm text-gray-400 hover:text-green-600 transition-colors cursor-pointer">Privacy Policy</Link>
+                        <Link to="/terms-of-service" className="text-sm text-gray-400 hover:text-green-600 transition-colors cursor-pointer">Terms of Service</Link>
                     </div>
                 </div>
             </div>

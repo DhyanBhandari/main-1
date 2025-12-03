@@ -42,9 +42,7 @@ const Hero = () => {
           </div>
 
           {/* Main Heading */}
-          <h1 className="text-hero md:text-display font-bold text-foreground mb-6 tracking-tight">
-            Datanomics Engine
-          </h1>
+         
 
           {/* Subheading */}
           <p className="text-2xl md:text-4xl font-semibold text-foreground mb-4 max-w-4xl mx-auto leading-tight">
@@ -52,8 +50,8 @@ const Hero = () => {
           </p>
 
           {/* Description */}
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
-            Environmental data, impact analytics, and project health unified in a single intelligence layer.
+          <p className="text-lg md:text-xl  max-w-3xl mx-auto leading-relaxed  text-[#0d2821]">
+            Environmental Data,Project Health & Monetry Value Creation is unified in a single intelligence layer.
           </p>
 
           {/* Animated Line */}
