@@ -53,12 +53,48 @@ export interface QueryMetadata {
   };
 }
 
-// Summary structure
+// Ecosystem type for adaptive weighting
+export type EcosystemType =
+  | 'tropical_forest'
+  | 'mangrove'
+  | 'grassland_savanna'
+  | 'wetland'
+  | 'agricultural'
+  | 'urban_green'
+  | 'default';
+
+// Score interpretation
+export type ScoreInterpretation =
+  | 'Excellent'
+  | 'Good'
+  | 'Moderate'
+  | 'Poor'
+  | 'Critical'
+  | 'Unavailable';
+
+// Summary structure (PHI Technical Framework)
 export interface PHISummary {
+  // Core scores
   overall_score: number;
+  overall_interpretation?: ScoreInterpretation;
   pillar_scores: Record<string, number>;
+
+  // Ecosystem-adaptive weighting
+  ecosystem_type?: EcosystemType;
+  ecosystem_weights?: Record<string, number>;
+
+  // Data quality (PHI Technical Framework DQS)
+  data_quality_score?: number;
   data_completeness: number;
+  dqs_recommendation?: string;
+  missing_critical_metrics?: string[];
   quality_flags: string[];
+
+  // Economic valuation
+  esv_multiplier?: number;
+
+  // Methodology
+  methodology?: string;
 }
 
 // Time series info
@@ -176,3 +212,89 @@ export const formatMetricValue = (value: number | null, unit?: string): string =
 
   return unit ? `${formatted} ${unit}` : formatted;
 };
+
+// Helper function to get interpretation color
+export const getInterpretationColor = (interpretation: ScoreInterpretation | undefined): string => {
+  switch (interpretation) {
+    case 'Excellent':
+      return '#22c55e'; // green
+    case 'Good':
+      return '#84cc16'; // lime
+    case 'Moderate':
+      return '#f59e0b'; // amber
+    case 'Poor':
+      return '#f97316'; // orange
+    case 'Critical':
+      return '#ef4444'; // red
+    case 'Unavailable':
+    default:
+      return '#6b7280'; // gray
+  }
+};
+
+// Helper function to format ecosystem type for display
+export const formatEcosystemType = (ecosystemType: EcosystemType | undefined): string => {
+  if (!ecosystemType) return 'Mixed/Unknown';
+
+  const labels: Record<EcosystemType, string> = {
+    tropical_forest: 'Tropical Forest',
+    mangrove: 'Mangrove',
+    grassland_savanna: 'Grassland/Savanna',
+    wetland: 'Wetland',
+    agricultural: 'Agricultural',
+    urban_green: 'Urban Green',
+    default: 'Mixed/Unknown'
+  };
+
+  return labels[ecosystemType] || 'Mixed/Unknown';
+};
+
+// Helper function to get ecosystem type icon
+export const getEcosystemIcon = (ecosystemType: EcosystemType | undefined): string => {
+  const icons: Record<EcosystemType, string> = {
+    tropical_forest: 'TreePine',
+    mangrove: 'Waves',
+    grassland_savanna: 'Sun',
+    wetland: 'Droplets',
+    agricultural: 'Wheat',
+    urban_green: 'Building2',
+    default: 'Globe'
+  };
+
+  return icons[ecosystemType || 'default'] || 'Globe';
+};
+
+// Helper function to get DQS confidence level
+export const getDQSConfidenceLevel = (dqs: number | undefined): {
+  level: string;
+  color: string;
+  description: string;
+} => {
+  if (dqs === undefined || dqs === null) {
+    return { level: 'Unknown', color: '#6b7280', description: 'Data quality score unavailable' };
+  }
+
+  if (dqs >= 85) {
+    return { level: 'High', color: '#22c55e', description: 'High confidence results' };
+  } else if (dqs >= 70) {
+    return { level: 'Investment Grade', color: '#84cc16', description: 'Suitable for most applications' };
+  } else if (dqs >= 50) {
+    return { level: 'Acceptable', color: '#f59e0b', description: 'Consider supplementing data' };
+  } else if (dqs >= 40) {
+    return { level: 'Marginal', color: '#f97316', description: 'Interpret with caution' };
+  } else {
+    return { level: 'Low', color: '#ef4444', description: 'Limited data coverage' };
+  }
+};
+
+// Helper function to format ESV multiplier
+export const formatESVMultiplier = (multiplier: number | null | undefined): string => {
+  if (multiplier === null || multiplier === undefined) return 'N/A';
+
+  const sign = multiplier >= 0 ? '+' : '';
+  const percentage = (multiplier * 100).toFixed(1);
+  return `${sign}${percentage}%`;
+};
+
+// Critical metrics list for reference
+export const CRITICAL_METRICS = ['ndvi', 'tree_cover', 'soil_moisture', 'human_modification'];

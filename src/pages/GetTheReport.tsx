@@ -43,6 +43,9 @@ import { ComprehensiveExternalData } from "@/types/weather";
 // Import Imagery Viewer
 import ImageryViewer from "@/components/ImageryViewer";
 
+// Import PHI Score Summary component
+import PHIScoreSummary from "@/components/PHIScoreSummary";
+
 // Import metric supplementation service
 import {
   supplementMetrics,
@@ -669,6 +672,21 @@ const GetTheReport = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* PHI Score Summary Section */}
+      {phiData?.summary && (
+        <section className="py-8 bg-gradient-to-b from-[#065f46] to-[#065f46]">
+          <div className="container px-4 mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <PHIScoreSummary summary={phiData.summary} />
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Environmental Overview - Radar Chart */}
       <section className="py-16 sm:py-20 bg-gradient-to-b from-[#065f46] to-white">
