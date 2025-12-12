@@ -29,7 +29,7 @@ const IMAGERY_CONFIG = {
     label: 'True Color',
     shortLabel: 'RGB',
     color: '#3b82f6',
-    description: 'Natural color view from Sentinel-2'
+    description: 'Natural color satellite view'
   },
   ndvi: {
     icon: TreePine,
@@ -43,14 +43,14 @@ const IMAGERY_CONFIG = {
     label: 'Temperature',
     shortLabel: 'LST',
     color: '#ef4444',
-    description: 'Land surface temperature from MODIS'
+    description: 'Land surface temperature'
   },
   land_cover: {
     icon: Layers,
     label: 'Land Cover',
     shortLabel: 'Cover',
     color: '#a855f7',
-    description: 'ESA WorldCover classification'
+    description: 'Land use classification'
   },
   forest_cover: {
     icon: TreePine,
@@ -315,9 +315,8 @@ export const ImageryViewer = ({ latitude, longitude, onLoad }: ImageryViewerProp
           </div>
         )}
 
-        {/* Technology Badge */}
-        <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
-          <span>Technology: {currentImagery?.source || 'Remote Sensing'}</span>
+        {/* Location Info */}
+        <div className="mt-4 text-xs text-gray-400 text-right">
           <span>Location: {latitude.toFixed(4)}, {longitude.toFixed(4)}</span>
         </div>
       </div>

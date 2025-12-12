@@ -10,4 +10,5 @@ export { PolarAreaChart } from './PolarAreaChart';
 export { RadialGauge } from './RadialGauge';
 export { ProgressiveLine } from './ProgressiveLine';
 export { BubbleChart } from './BubbleChart';
+export { AreaChart } from './AreaChart';
 export { chartColors, commonOptions, animationConfig } from './ChartConfig';

@@ -46,6 +46,9 @@ import ImageryViewer from "@/components/ImageryViewer";
 // Import PHI Score Summary component
 import PHIScoreSummary from "@/components/PHIScoreSummary";
 
+// Import ESV Breakdown component
+import ESVBreakdown from "@/components/ESVBreakdown";
+
 // Import metric supplementation service
 import {
   supplementMetrics,
@@ -688,6 +691,24 @@ const GetTheReport = () => {
         </section>
       )}
 
+      {/* ESV Breakdown Section */}
+      {phiData?.summary && (
+        <section className="py-8 bg-gradient-to-b from-[#065f46] to-[#065f46]">
+          <div className="container px-4 mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <ESVBreakdown
+                phiScore={phiData.summary.overall_score || 0}
+                ecosystemType={phiData.summary.ecosystem_type}
+              />
+            </motion.div>
+          </div>
+        </section>
+      )}
+
       {/* Environmental Overview - Radar Chart */}
       <section className="py-16 sm:py-20 bg-gradient-to-b from-[#065f46] to-white">
         <div className="container px-4 mx-auto">
@@ -808,6 +829,7 @@ const GetTheReport = () => {
               const Icon = PILLAR_ICONS[pillarId] || GlobeIcon;
               const chartData = prepareBarChartData(key);
               const pillarInfo = PILLAR_INFO[pillarId];
+              const pillarScore = phiData?.summary?.pillar_scores?.[pillarId];
 
               return (
                 <motion.div
@@ -827,9 +849,22 @@ const GetTheReport = () => {
                       <Icon className="w-8 h-8" style={{ color: pillar.pillar_color }} />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-[#0d2821] mb-2">
-                        {pillar.pillar_name}
-                      </h3>
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-2xl font-bold text-[#0d2821]">
+                          {pillar.pillar_name}
+                        </h3>
+                        {pillarScore !== undefined && pillarScore !== null && (
+                          <div
+                            className="px-3 py-1 rounded-full text-sm font-bold"
+                            style={{
+                              backgroundColor: `${pillar.pillar_color}20`,
+                              color: pillar.pillar_color,
+                            }}
+                          >
+                            {Math.round(pillarScore)}/100
+                          </div>
+                        )}
+                      </div>
                       {pillarInfo && (
                         <>
                           <p className="text-sm text-gray-600 mb-2">
