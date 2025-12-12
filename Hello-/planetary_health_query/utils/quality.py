@@ -1,10 +1,13 @@
 """
 Data Quality Assessment Module.
 Handles quality flags, QA band interpretation, and data validation.
+
+Includes PHI Technical Framework DQS (Data Quality Score) calculation
+with criticality-weighted availability assessment.
 """
 
-from typing import Dict, Any, Optional
-from ..core.config import METRIC_METADATA
+from typing import Dict, Any, Optional, List
+from ..core.config import METRIC_METADATA, PHI_METRIC_PARAMS, CRITICALITY_WEIGHTS, DQS_THRESHOLDS
 
 
 def assess_data_quality(metric: str, value: Any) -> str:
@@ -173,3 +176,250 @@ def validate_coordinate(lat: float, lon: float) -> Dict[str, Any]:
         "valid": len(errors) == 0,
         "errors": errors
     }
+
+
+# =============================================================================
+# PHI TECHNICAL FRAMEWORK - DATA QUALITY SCORE (DQS)
+# =============================================================================
+
+def calculate_dqs(
+    metrics_availability: Dict[str, bool],
+    data_quality_flags: Dict[str, str]
+) -> float:
+    """
+    Calculate Data Quality Score using criticality-weighted formula.
+
+    Formula: DQS = [Sum(w_i * a_i) / Sum(w_i)] * 100
+
+    Where:
+        w_i = criticality weight for metric i
+        a_i = availability score:
+              - 1.0 if available with good quality
+              - 0.5 if available with moderate quality
+              - 0.25 if available with poor quality
+              - 0.0 if unavailable
+
+    Criticality Weights:
+        - Critical (1.0): NDVI, Tree Cover, Soil Moisture, Human Modification
+        - Important (0.7): EVI, AOD, Drought Index, Biomass, Canopy Height
+        - Supporting (0.4): LAI, FPAR, LST, Population, Night Lights
+        - Auxiliary (0.2): UV Index, Visibility, Distance to Water
+
+    Args:
+        metrics_availability: Dict mapping metric names to availability (True/False)
+        data_quality_flags: Dict mapping metric names to quality flags
+
+    Returns:
+        DQS score (0-100)
+    """
+    weighted_sum = 0.0
+    total_weight = 0.0
+
+    for metric_name, params in PHI_METRIC_PARAMS.items():
+        # Get criticality weight
+        criticality = params.get("criticality", "supporting")
+        weight = CRITICALITY_WEIGHTS.get(criticality, 0.4)
+
+        # Skip zero-weight informational metrics
+        if params.get("weight", 0) == 0:
+            continue
+
+        # Determine availability score
+        is_available = metrics_availability.get(metric_name, False)
+        quality = data_quality_flags.get(metric_name, "unavailable")
+
+        if not is_available or quality == "unavailable":
+            availability_score = 0.0
+        elif quality == "poor":
+            availability_score = 0.25
+        elif quality == "moderate":
+            availability_score = 0.5
+        else:  # "good" or "supplemented"
+            availability_score = 1.0
+
+        weighted_sum += weight * availability_score
+        total_weight += weight
+
+    if total_weight == 0:
+        return 0.0
+
+    return round((weighted_sum / total_weight) * 100, 2)
+
+
+def calculate_dqs_from_pillars(pillars: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Calculate DQS from pillar results.
+
+    Extracts availability and quality information from pillar data
+    and calculates the criticality-weighted DQS.
+
+    Args:
+        pillars: Dict of pillar results with metrics
+
+    Returns:
+        Dict containing DQS score and detailed breakdown
+    """
+    metrics_availability = {}
+    quality_flags = {}
+    metric_details = []
+
+    for pillar_data in pillars.values():
+        metrics = pillar_data.get("metrics", {})
+        for metric_name, metric_data in metrics.items():
+            if isinstance(metric_data, dict):
+                is_available = metric_data.get("value") is not None
+                quality = metric_data.get("quality", "unavailable")
+            else:
+                is_available = metric_data is not None
+                quality = "good" if is_available else "unavailable"
+
+            metrics_availability[metric_name] = is_available
+            quality_flags[metric_name] = quality
+
+            # Get criticality for reporting
+            params = PHI_METRIC_PARAMS.get(metric_name, {})
+            criticality = params.get("criticality", "supporting")
+
+            metric_details.append({
+                "metric": metric_name,
+                "available": is_available,
+                "quality": quality,
+                "criticality": criticality,
+                "weight": CRITICALITY_WEIGHTS.get(criticality, 0.4)
+            })
+
+    dqs = calculate_dqs(metrics_availability, quality_flags)
+
+    # Determine confidence level
+    if dqs >= DQS_THRESHOLDS.get("high_confidence", 85):
+        confidence_level = "high"
+    elif dqs >= DQS_THRESHOLDS.get("investment_grade", 70):
+        confidence_level = "investment_grade"
+    elif dqs >= DQS_THRESHOLDS.get("overall_minimum", 50):
+        confidence_level = "acceptable"
+    else:
+        confidence_level = "low"
+
+    return {
+        "dqs_score": dqs,
+        "confidence_level": confidence_level,
+        "metric_count": len(metric_details),
+        "available_count": sum(1 for m in metric_details if m["available"]),
+        "metrics": metric_details
+    }
+
+
+def assess_metric_quality_detailed(
+    metric_name: str,
+    value: Any,
+    metadata: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    Perform detailed quality assessment for a metric.
+
+    Uses PHI parameters for range validation and quality determination.
+
+    Args:
+        metric_name: Name of the metric
+        value: Metric value
+        metadata: Optional metadata from query (source, resolution, etc.)
+
+    Returns:
+        Dict with quality assessment details
+    """
+    if value is None:
+        return {
+            "quality": "unavailable",
+            "reason": "No data available",
+            "confidence": 0.0,
+            "criticality": PHI_METRIC_PARAMS.get(metric_name, {}).get("criticality", "supporting")
+        }
+
+    params = PHI_METRIC_PARAMS.get(metric_name, {})
+    v_min = params.get("v_min", float("-inf"))
+    v_max = params.get("v_max", float("inf"))
+
+    # Check if value is within expected range
+    if v_min != float("-inf") and v_max != float("inf"):
+        if value < v_min or value > v_max:
+            return {
+                "quality": "poor",
+                "reason": f"Value {value} outside expected range [{v_min}, {v_max}]",
+                "confidence": 0.3,
+                "criticality": params.get("criticality", "supporting")
+            }
+
+        # Check for edge cases (near boundaries might be less reliable)
+        range_width = v_max - v_min
+        if range_width > 0:
+            distance_from_edge = min(abs(value - v_min), abs(value - v_max))
+            edge_ratio = distance_from_edge / range_width
+
+            if edge_ratio < 0.05:
+                return {
+                    "quality": "moderate",
+                    "reason": "Value near expected range boundary",
+                    "confidence": 0.6,
+                    "criticality": params.get("criticality", "supporting")
+                }
+
+    return {
+        "quality": "good",
+        "reason": "Value within expected range",
+        "confidence": 0.9,
+        "criticality": params.get("criticality", "supporting")
+    }
+
+
+def get_missing_critical_metrics(pillars: Dict[str, Any]) -> List[str]:
+    """
+    Identify missing critical metrics that significantly impact DQS.
+
+    Args:
+        pillars: Dict of pillar results
+
+    Returns:
+        List of missing critical metric names
+    """
+    missing_critical = []
+
+    # Get all available metrics
+    available_metrics = set()
+    for pillar_data in pillars.values():
+        metrics = pillar_data.get("metrics", {})
+        for metric_name, metric_data in metrics.items():
+            if isinstance(metric_data, dict):
+                if metric_data.get("value") is not None:
+                    available_metrics.add(metric_name)
+            elif metric_data is not None:
+                available_metrics.add(metric_name)
+
+    # Check for missing critical metrics
+    for metric_name, params in PHI_METRIC_PARAMS.items():
+        if params.get("criticality") == "critical":
+            if metric_name not in available_metrics:
+                missing_critical.append(metric_name)
+
+    return missing_critical
+
+
+def get_dqs_recommendation(dqs_score: float) -> str:
+    """
+    Get recommendation based on DQS score.
+
+    Args:
+        dqs_score: Data Quality Score (0-100)
+
+    Returns:
+        Recommendation string
+    """
+    if dqs_score >= 85:
+        return "High confidence results. Data quality suitable for detailed analysis and reporting."
+    elif dqs_score >= 70:
+        return "Investment-grade data quality. Results suitable for most applications."
+    elif dqs_score >= 50:
+        return "Acceptable data quality. Consider supplementing with additional data sources."
+    elif dqs_score >= 40:
+        return "Marginal data quality. Results should be interpreted with caution."
+    else:
+        return "Low data quality. Consider expanding search area or time range for better coverage."

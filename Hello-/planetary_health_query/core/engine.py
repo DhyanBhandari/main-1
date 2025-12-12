@@ -9,7 +9,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .authenticator import initialize_ee, get_project_id
-from .config import PILLAR_CONFIG
+from .config import PILLAR_CONFIG, LANDCOVER_TO_ECOSYSTEM, ECOSYSTEM_CATEGORY_WEIGHTS
 from ..pillars import (
     AtmosphericPillar,
     BiodiversityPillar,
@@ -17,8 +17,18 @@ from ..pillars import (
     DegradationPillar,
     EcosystemPillar
 )
-from ..utils.scoring import calculate_pillar_score, calculate_overall_score
-from ..utils.quality import assess_data_completeness
+from ..utils.scoring import (
+    calculate_pillar_score,
+    calculate_overall_score,
+    calculate_phi_esv_multiplier,
+    get_score_interpretation
+)
+from ..utils.quality import (
+    assess_data_completeness,
+    calculate_dqs,
+    get_missing_critical_metrics,
+    get_dqs_recommendation
+)
 
 
 class GEEQueryEngine:
@@ -327,34 +337,185 @@ class GEEQueryEngine:
                 }
         return result
 
+    def detect_ecosystem_type(
+        self,
+        land_cover_value: Optional[int],
+        tree_cover: Optional[float] = None,
+        human_modification: Optional[float] = None
+    ) -> str:
+        """
+        Detect ecosystem type from land cover and other metrics.
+
+        Uses WorldCover land cover classification as primary indicator,
+        with tree_cover and human_modification as refinement factors.
+
+        Ecosystem Types:
+        - tropical_forest: High tree cover, natural areas
+        - mangrove: Coastal wetland forests
+        - grassland_savanna: Low tree cover, natural grasslands
+        - wetland: Water bodies and wetland areas
+        - agricultural: Cropland and managed landscapes
+        - urban_green: Built-up areas with green spaces
+        - default: Mixed or unknown ecosystems
+
+        Args:
+            land_cover_value: WorldCover class value (10-100)
+            tree_cover: Optional tree cover percentage (0-100)
+            human_modification: Optional human modification index (0-1)
+
+        Returns:
+            Ecosystem type string for weight selection
+        """
+        # Primary detection from land cover
+        if land_cover_value is not None:
+            ecosystem = LANDCOVER_TO_ECOSYSTEM.get(land_cover_value, "default")
+
+            # Refine based on additional metrics
+            if ecosystem == "tropical_forest" and tree_cover is not None:
+                if tree_cover < 25:
+                    ecosystem = "grassland_savanna"
+
+            if human_modification is not None and human_modification > 0.6:
+                if ecosystem not in ["urban_green", "agricultural"]:
+                    ecosystem = "urban_green"
+
+            return ecosystem
+
+        # Fallback heuristics when land cover unavailable
+        if tree_cover is not None:
+            if tree_cover > 50:
+                return "tropical_forest"
+            elif tree_cover > 10:
+                return "grassland_savanna"
+
+        if human_modification is not None:
+            if human_modification > 0.5:
+                return "urban_green"
+            elif human_modification > 0.3:
+                return "agricultural"
+
+        return "default"
+
     def _create_summary(self, result: Dict) -> Dict:
-        """Create summary statistics."""
-        # Calculate overall score
+        """
+        Create summary statistics using PHI Technical Framework methodology.
+
+        Includes:
+        - Ecosystem-adaptive weighted overall score
+        - Data Quality Score (DQS) with criticality weighting
+        - PHI-to-ESV multiplier
+        - Missing critical metrics identification
+        """
+        # Extract metrics for ecosystem detection
+        land_cover = None
+        tree_cover = None
+        human_modification = None
+
+        for pillar_key, pillar_data in result["pillars"].items():
+            metrics = pillar_data.get("metrics", {})
+
+            # Get land_cover value
+            if "land_cover" in metrics:
+                lc_data = metrics["land_cover"]
+                if isinstance(lc_data, dict):
+                    land_cover = lc_data.get("value")
+                else:
+                    land_cover = lc_data
+
+            # Get tree_cover value
+            if "tree_cover" in metrics:
+                tc_data = metrics["tree_cover"]
+                if isinstance(tc_data, dict):
+                    tree_cover = tc_data.get("value")
+                else:
+                    tree_cover = tc_data
+
+            # Get human_modification value
+            if "human_modification" in metrics:
+                hm_data = metrics["human_modification"]
+                if isinstance(hm_data, dict):
+                    human_modification = hm_data.get("value")
+                else:
+                    human_modification = hm_data
+
+        # Detect ecosystem type for adaptive weighting
+        ecosystem_type = self.detect_ecosystem_type(
+            land_cover, tree_cover, human_modification
+        )
+
+        # Calculate pillar scores
         pillar_scores = {}
         for pillar_key, pillar_data in result["pillars"].items():
             if "score" in pillar_data:
                 pillar_id = pillar_key[0]
                 pillar_scores[pillar_id] = pillar_data["score"]
 
-        overall_score = calculate_overall_score(pillar_scores)
+        # Calculate overall score with ecosystem-adaptive weights
+        overall_score = calculate_overall_score(pillar_scores, ecosystem_type)
 
-        # Calculate data completeness
-        completeness = assess_data_completeness(result["pillars"])
+        # Calculate ESV multiplier
+        esv_multiplier = calculate_phi_esv_multiplier(overall_score) if overall_score else None
 
-        # Identify quality flags
-        quality_flags = []
+        # Calculate DQS (Data Quality Score)
+        metrics_availability = {}
+        quality_flags_dict = {}
+        quality_issues = []
+
         for pillar_data in result["pillars"].values():
             for metric_name, metric_data in pillar_data.get("metrics", {}).items():
-                if metric_data.get("quality") == "poor":
-                    quality_flags.append(f"{metric_name}_poor")
-                elif metric_data.get("quality") == "unavailable":
-                    quality_flags.append(f"{metric_name}_unavailable")
+                if isinstance(metric_data, dict):
+                    is_available = metric_data.get("value") is not None
+                    quality = metric_data.get("quality", "unavailable")
+                else:
+                    is_available = metric_data is not None
+                    quality = "good" if is_available else "unavailable"
+
+                metrics_availability[metric_name] = is_available
+                quality_flags_dict[metric_name] = quality
+
+                # Track quality issues
+                if quality == "poor":
+                    quality_issues.append(f"{metric_name}_poor")
+                elif quality == "unavailable":
+                    quality_issues.append(f"{metric_name}_unavailable")
+
+        dqs = calculate_dqs(metrics_availability, quality_flags_dict)
+
+        # Calculate simple data completeness for backwards compatibility
+        completeness = assess_data_completeness(result["pillars"])
+
+        # Get missing critical metrics
+        missing_critical = get_missing_critical_metrics(result["pillars"])
+
+        # Get ecosystem weights used
+        ecosystem_config = ECOSYSTEM_CATEGORY_WEIGHTS.get(
+            ecosystem_type,
+            ECOSYSTEM_CATEGORY_WEIGHTS["default"]
+        )
+        weights_used = {k: v for k, v in ecosystem_config.items() if k in ["A", "B", "C", "D", "E"]}
 
         return {
+            # Core scores
             "overall_score": overall_score,
+            "overall_interpretation": get_score_interpretation(round(overall_score) if overall_score else None),
             "pillar_scores": pillar_scores,
+
+            # Ecosystem-adaptive weighting
+            "ecosystem_type": ecosystem_type,
+            "ecosystem_weights": weights_used,
+
+            # Data quality
+            "data_quality_score": dqs,
             "data_completeness": completeness,
-            "quality_flags": quality_flags[:5]  # Top 5 issues
+            "dqs_recommendation": get_dqs_recommendation(dqs),
+            "missing_critical_metrics": missing_critical,
+            "quality_flags": quality_issues[:10],  # Top 10 issues
+
+            # Economic valuation
+            "esv_multiplier": esv_multiplier,
+
+            # Methodology
+            "methodology": "PHI Technical Framework v1.0"
         }
 
 

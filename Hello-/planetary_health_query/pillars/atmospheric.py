@@ -20,7 +20,7 @@ class AtmosphericPillar(BasePillar):
         return ["aod", "aqi"]
 
     def get_comprehensive_metrics(self) -> List[str]:
-        return ["aod", "aqi", "uv_index", "cloud_fraction"]
+        return ["aod", "aqi", "uv_index", "visibility", "cloud_fraction"]
 
     def query_metrics(
         self,
@@ -139,6 +139,32 @@ class AtmosphericPillar(BasePillar):
                             "quality": "unavailable",
                             "error": str(e)
                         }
+
+        # Calculate visibility from AOD (derived metric)
+        if "visibility" in metrics:
+            aod_data = results["metrics"].get("aod", {})
+            aod_value = aod_data.get("value")
+
+            if aod_value is not None and aod_value >= 0:
+                # Empirical formula: visibility (km) ~ 50 / (1 + 10 * AOD)
+                # Based on Koschmieder equation approximation
+                visibility_km = 50 / (1 + 10 * aod_value)
+                visibility_km = max(1, min(50, visibility_km))  # Clamp to 1-50 km range
+
+                results["metrics"]["visibility"] = {
+                    "value": round(visibility_km, 2),
+                    "unit": "km",
+                    "description": "Estimated Visibility (derived from AOD)",
+                    "quality": "moderate",  # Derived metric, so marked as moderate
+                    "source": "derived_from_aod"
+                }
+            else:
+                results["metrics"]["visibility"] = {
+                    "value": None,
+                    "unit": "km",
+                    "quality": "unavailable",
+                    "error": "Requires valid AOD value for calculation"
+                }
 
         results["data_date"] = date_range[1]
         return results

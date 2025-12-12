@@ -88,3 +88,7 @@ DEPLOYMENT_KEYS.md
 # ========== WINDOWS NULL FILE ==========
 nul
 NUL
+
+# ========== DOCUMENTATION FOLDERS ==========
+new/
+i/

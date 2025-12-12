@@ -1,15 +1,165 @@
 """
-Pillar Scoring Module.
-Calculates health scores (0-100) for each pillar and overall.
+PHI Scoring Module.
+Calculates health scores using the PHI Technical Framework methodology.
+
+This module implements:
+- Metric normalization using 5 function types (linear, inverse, sigmoid, gaussian, centered)
+- Weighted category/pillar score calculation
+- Ecosystem-adaptive overall PHI score
+- PHI-to-ESV multiplier calculation
 """
 
-from typing import Dict, Any, Optional
-from ..core.config import METRIC_METADATA, PILLAR_CONFIG
+import math
+from typing import Dict, Any, Optional, Tuple
+
+from .normalization import (
+    linear_normalize,
+    inverse_linear_normalize,
+    sigmoid_normalize,
+    inverse_sigmoid_normalize,
+    gaussian_normalize,
+    centered_normalize
+)
+from ..core.config import (
+    PHI_METRIC_PARAMS,
+    ECOSYSTEM_CATEGORY_WEIGHTS,
+    CRITICALITY_WEIGHTS,
+    PHI_ESV_CONSTANTS,
+    PILLAR_CONFIG
+)
+
+
+def normalize_metric(metric_name: str, value: float) -> Optional[float]:
+    """
+    Normalize a single metric value to 0-100 score using PHI methodology.
+
+    Applies the appropriate normalization function based on metric configuration:
+    - Linear: Higher values produce higher scores
+    - Inverse Linear: Lower values produce higher scores
+    - Sigmoid: S-curve with diminishing returns
+    - Gaussian: Optimal value produces highest score
+    - Centered: Zero produces highest score
+
+    Args:
+        metric_name: Name of the metric (e.g., "ndvi", "aod")
+        value: Raw metric value
+
+    Returns:
+        Normalized score (0-100) or None if metric not configured
+    """
+    if value is None:
+        return None
+
+    params = PHI_METRIC_PARAMS.get(metric_name)
+    if not params:
+        return None
+
+    norm_type = params.get("norm_type", "linear")
+    v_min = params.get("v_min", 0)
+    v_max = params.get("v_max", 100)
+
+    if norm_type == "linear":
+        return linear_normalize(value, v_min, v_max)
+
+    elif norm_type == "inverse_linear":
+        return inverse_linear_normalize(value, v_min, v_max)
+
+    elif norm_type == "sigmoid":
+        k = params.get("k", 0.5)
+        v_mid = params.get("v_mid")
+        return sigmoid_normalize(value, v_min, v_max, k, v_mid)
+
+    elif norm_type == "inverse_sigmoid":
+        k = params.get("k", 0.5)
+        v_mid = params.get("v_mid")
+        return inverse_sigmoid_normalize(value, v_min, v_max, k, v_mid)
+
+    elif norm_type == "gaussian":
+        v_opt = params.get("v_opt", (v_min + v_max) / 2)
+        sigma = params.get("sigma", (v_max - v_min) / 4)
+        return gaussian_normalize(value, v_opt, sigma, v_min, v_max)
+
+    elif norm_type == "centered":
+        return centered_normalize(value, v_max)
+
+    else:
+        # Default to linear
+        return linear_normalize(value, v_min, v_max)
+
+
+def calculate_category_score(
+    category_id: str,
+    metrics: Dict[str, Any]
+) -> Tuple[Optional[float], Dict[str, float]]:
+    """
+    Calculate weighted score for a single category/pillar.
+
+    Formula: C_j = Sum(w_i * S_i) / Sum(w_i)
+
+    Where:
+    - w_i is the weight of indicator i within the category
+    - S_i is the normalized score of indicator i
+
+    Args:
+        category_id: Category identifier (A, B, C, D, or E)
+        metrics: Dict of metric values from pillar query
+
+    Returns:
+        Tuple of (category_score, individual_metric_scores)
+    """
+    if not metrics:
+        return None, {}
+
+    weighted_sum = 0.0
+    total_weight = 0.0
+    metric_scores = {}
+
+    for metric_name, metric_data in metrics.items():
+        # Get raw value
+        if isinstance(metric_data, dict):
+            value = metric_data.get("value")
+        else:
+            value = metric_data
+
+        if value is None:
+            continue
+
+        # Check if metric belongs to this category
+        params = PHI_METRIC_PARAMS.get(metric_name)
+        if not params:
+            continue
+
+        # Allow metrics that match the category or have no category specified
+        metric_category = params.get("category")
+        if metric_category and metric_category != category_id:
+            continue
+
+        # Normalize the value
+        score = normalize_metric(metric_name, value)
+        if score is None:
+            continue
+
+        metric_scores[metric_name] = round(score, 2)
+
+        # Apply weight (skip zero-weight informational metrics)
+        weight = params.get("weight", 0.25)
+        if weight > 0:
+            weighted_sum += score * weight
+            total_weight += weight
+
+    if total_weight == 0:
+        return None, metric_scores
+
+    category_score = weighted_sum / total_weight
+    return round(category_score, 2), metric_scores
 
 
 def calculate_pillar_score(pillar_id: str, metrics: Dict[str, Any]) -> Optional[int]:
     """
-    Calculate a health score (0-100) for a pillar.
+    Calculate a health score (0-100) for a pillar using PHI methodology.
+
+    This function maintains backwards compatibility with the existing API
+    while using the new PHI normalization methodology internally.
 
     Args:
         pillar_id: Pillar identifier (A, B, C, D, or E)
@@ -18,30 +168,26 @@ def calculate_pillar_score(pillar_id: str, metrics: Dict[str, Any]) -> Optional[
     Returns:
         Score 0-100, or None if insufficient data
     """
-    if not metrics:
-        return None
-
-    score_funcs = {
-        "A": _score_atmospheric,
-        "B": _score_biodiversity,
-        "C": _score_carbon,
-        "D": _score_degradation,
-        "E": _score_ecosystem
-    }
-
-    scorer = score_funcs.get(pillar_id)
-    if scorer:
-        return scorer(metrics)
-
-    return None
+    score, _ = calculate_category_score(pillar_id, metrics)
+    return round(score) if score is not None else None
 
 
-def calculate_overall_score(pillar_scores: Dict[str, int]) -> Optional[int]:
+def calculate_overall_score(
+    pillar_scores: Dict[str, float],
+    ecosystem_type: str = "default"
+) -> Optional[float]:
     """
-    Calculate overall planetary health score.
+    Calculate overall PHI score using ecosystem-adaptive weights.
+
+    Formula: PHI = W_A*A + W_B*B + W_C*C + W_D*D + W_E*E
+
+    Where W_x are ecosystem-specific weights that sum to 1.0
 
     Args:
-        pillar_scores: Dict mapping pillar IDs to scores
+        pillar_scores: Dict mapping pillar IDs to scores (e.g., {"A": 75, "B": 82})
+        ecosystem_type: Detected ecosystem type for adaptive weighting
+                       Options: tropical_forest, mangrove, grassland_savanna,
+                               wetland, agricultural, urban_green, default
 
     Returns:
         Weighted average score 0-100, or None if insufficient data
@@ -49,245 +195,88 @@ def calculate_overall_score(pillar_scores: Dict[str, int]) -> Optional[int]:
     if not pillar_scores:
         return None
 
-    total_weight = 0
-    weighted_sum = 0
+    # Get ecosystem-specific weights
+    ecosystem_config = ECOSYSTEM_CATEGORY_WEIGHTS.get(
+        ecosystem_type,
+        ECOSYSTEM_CATEGORY_WEIGHTS["default"]
+    )
+
+    # Extract just the weights (not the description)
+    weights = {k: v for k, v in ecosystem_config.items() if k in ["A", "B", "C", "D", "E"]}
+
+    weighted_sum = 0.0
+    total_weight = 0.0
 
     for pillar_id, score in pillar_scores.items():
-        if score is not None:
-            weight = PILLAR_CONFIG.get(pillar_id, {}).get("weight", 0.2)
-            weighted_sum += score * weight
-            total_weight += weight
+        if score is None:
+            continue
+
+        weight = weights.get(pillar_id, 0.20)
+        weighted_sum += score * weight
+        total_weight += weight
 
     if total_weight == 0:
         return None
 
-    return round(weighted_sum / total_weight)
+    # Normalize by total weight used (handles missing pillars)
+    return round(weighted_sum / total_weight, 2)
 
 
-def _score_atmospheric(metrics: Dict[str, Any]) -> Optional[int]:
-    """Score atmospheric pillar."""
-    scores = []
+def calculate_phi_esv_multiplier(phi_score: float) -> Optional[float]:
+    """
+    Calculate PHI-to-ESV (Ecosystem Service Value) multiplier.
 
-    # AOD scoring (lower is better)
-    aod = _get_metric_value(metrics, "aod")
-    if aod is not None:
-        if aod < 0.1:
-            scores.append(100)
-        elif aod < 0.2:
-            scores.append(80)
-        elif aod < 0.3:
-            scores.append(60)
-        elif aod < 0.5:
-            scores.append(40)
-        else:
-            scores.append(20)
+    Formula: M_PHI = [(PHI - 50) / 100] * k * [1 + alpha * ln(PHI / 50)]
 
-    # AQI scoring (lower is better)
-    aqi = _get_metric_value(metrics, "aqi")
-    if aqi is not None:
-        if aqi < 50:
-            scores.append(100)
-        elif aqi < 100:
-            scores.append(75)
-        elif aqi < 150:
-            scores.append(50)
-        elif aqi < 200:
-            scores.append(25)
-        else:
-            scores.append(10)
+    Where:
+    - k = 0.6 (base sensitivity factor)
+    - alpha = 0.15 (logarithmic acceleration factor)
 
-    if not scores:
+    The multiplier adjusts ecosystem service valuations based on health:
+    - PHI = 50 produces multiplier near 0 (baseline)
+    - PHI > 50 produces positive multiplier (enhanced value)
+    - PHI < 50 produces negative multiplier (degraded value)
+
+    Args:
+        phi_score: Overall PHI score (0-100)
+
+    Returns:
+        ESV multiplier value, or None if invalid input
+    """
+    if phi_score is None or phi_score <= 0:
         return None
 
-    return round(sum(scores) / len(scores))
+    k = PHI_ESV_CONSTANTS.get("k", 0.6)
+    alpha = PHI_ESV_CONSTANTS.get("alpha", 0.15)
 
+    # Protect against log(0) or log(negative)
+    phi_clamped = max(phi_score, 1.0)
 
-def _score_biodiversity(metrics: Dict[str, Any]) -> Optional[int]:
-    """Score biodiversity pillar."""
-    scores = []
+    try:
+        base = (phi_clamped - 50) / 100
 
-    # NDVI scoring (higher is better for vegetated areas)
-    ndvi = _get_metric_value(metrics, "ndvi")
-    if ndvi is not None:
-        if ndvi > 0.7:
-            scores.append(100)
-        elif ndvi > 0.5:
-            scores.append(80)
-        elif ndvi > 0.3:
-            scores.append(60)
-        elif ndvi > 0.1:
-            scores.append(40)
-        else:
-            scores.append(20)
+        # Protect against log of values <= 0
+        ratio = phi_clamped / 50
+        if ratio <= 0:
+            return None
 
-    # EVI scoring
-    evi = _get_metric_value(metrics, "evi")
-    if evi is not None:
-        if evi > 0.5:
-            scores.append(100)
-        elif evi > 0.35:
-            scores.append(80)
-        elif evi > 0.2:
-            scores.append(60)
-        else:
-            scores.append(40)
-
-    # LAI scoring
-    lai = _get_metric_value(metrics, "lai")
-    if lai is not None:
-        if lai > 4:
-            scores.append(100)
-        elif lai > 2.5:
-            scores.append(80)
-        elif lai > 1:
-            scores.append(60)
-        else:
-            scores.append(40)
-
-    if not scores:
+        log_factor = 1 + alpha * math.log(ratio)
+        multiplier = base * k * log_factor
+        return round(multiplier, 4)
+    except (ValueError, ZeroDivisionError, OverflowError):
         return None
 
-    return round(sum(scores) / len(scores))
 
-
-def _score_carbon(metrics: Dict[str, Any]) -> Optional[int]:
-    """Score carbon pillar."""
-    scores = []
-
-    # Tree cover scoring (higher is better)
-    tree_cover = _get_metric_value(metrics, "tree_cover")
-    if tree_cover is not None:
-        scores.append(min(100, tree_cover))  # Direct percentage
-
-    # Forest loss scoring (no loss is better)
-    forest_loss = _get_metric_value(metrics, "forest_loss")
-    if forest_loss is not None:
-        scores.append(100 if forest_loss == 0 else 20)
-
-    # Canopy height scoring
-    height = _get_metric_value(metrics, "canopy_height")
-    if height is not None:
-        if height > 30:
-            scores.append(100)
-        elif height > 20:
-            scores.append(80)
-        elif height > 10:
-            scores.append(60)
-        elif height > 5:
-            scores.append(40)
-        else:
-            scores.append(20)
-
-    # Biomass scoring
-    biomass = _get_metric_value(metrics, "biomass")
-    if biomass is not None:
-        if biomass > 200:
-            scores.append(100)
-        elif biomass > 100:
-            scores.append(80)
-        elif biomass > 50:
-            scores.append(60)
-        elif biomass > 20:
-            scores.append(40)
-        else:
-            scores.append(20)
-
-    if not scores:
-        return None
-
-    return round(sum(scores) / len(scores))
-
-
-def _score_degradation(metrics: Dict[str, Any]) -> Optional[int]:
-    """Score degradation pillar (inverted - lower stress is better)."""
-    scores = []
-
-    # LST scoring (moderate temperatures are better)
-    lst = _get_metric_value(metrics, "lst")
-    if lst is not None:
-        # Optimal range 15-30 C
-        if 15 <= lst <= 30:
-            scores.append(100)
-        elif 10 <= lst <= 35:
-            scores.append(80)
-        elif 5 <= lst <= 40:
-            scores.append(60)
-        else:
-            scores.append(40)
-
-    # Soil moisture scoring (moderate is better)
-    sm = _get_metric_value(metrics, "soil_moisture")
-    if sm is not None:
-        if 0.2 <= sm <= 0.4:
-            scores.append(100)
-        elif 0.1 <= sm <= 0.5:
-            scores.append(70)
-        else:
-            scores.append(40)
-
-    # Drought index scoring (closer to 0 is better)
-    drought = _get_metric_value(metrics, "drought_index")
-    if drought is not None:
-        drought_abs = abs(drought)
-        if drought_abs < 0.5:
-            scores.append(100)
-        elif drought_abs < 1:
-            scores.append(75)
-        elif drought_abs < 1.5:
-            scores.append(50)
-        else:
-            scores.append(25)
-
-    if not scores:
-        return None
-
-    return round(sum(scores) / len(scores))
-
-
-def _score_ecosystem(metrics: Dict[str, Any]) -> Optional[int]:
-    """Score ecosystem pillar."""
-    scores = []
-
-    # Human modification scoring (context dependent)
-    # For this general scoring, we treat moderate modification as neutral
-    hm = _get_metric_value(metrics, "human_modification")
-    if hm is not None:
-        # Scale: 0 (pristine) to 1 (heavily modified)
-        # We give higher scores to less modified areas
-        scores.append(round(100 * (1 - hm)))
-
-    # Nightlights - context dependent
-    # Rural areas might want low, urban might want high
-    # We'll score based on moderate urbanization being neutral
-    nightlights = _get_metric_value(metrics, "nightlights")
-    if nightlights is not None:
-        # This is informational, not scored
-        pass
-
-    # Population - informational, not directly scored
-    population = _get_metric_value(metrics, "population")
-    if population is not None:
-        # Informational only
-        pass
-
-    if not scores:
-        # Default neutral score if only informational metrics
-        return 50
-
-    return round(sum(scores) / len(scores))
-
-
-def _get_metric_value(metrics: Dict[str, Any], metric_name: str) -> Optional[float]:
-    """Extract numeric value from metrics dict."""
-    metric_data = metrics.get(metric_name, {})
-    if isinstance(metric_data, dict):
-        return metric_data.get("value")
-    return metric_data
-
-
-def get_score_interpretation(score: int) -> str:
+def get_score_interpretation(score: Optional[int]) -> str:
     """
     Get human-readable interpretation of a score.
+
+    Score bands:
+    - 80-100: Excellent - Ecosystem in excellent health
+    - 60-79: Good - Ecosystem functioning well
+    - 40-59: Moderate - Some concerns, monitoring needed
+    - 20-39: Poor - Significant degradation
+    - 0-19: Critical - Urgent intervention needed
 
     Args:
         score: Score 0-100
@@ -295,6 +284,8 @@ def get_score_interpretation(score: int) -> str:
     Returns:
         Interpretation string
     """
+    if score is None:
+        return "Unavailable"
     if score >= 80:
         return "Excellent"
     elif score >= 60:
@@ -307,7 +298,7 @@ def get_score_interpretation(score: int) -> str:
         return "Critical"
 
 
-def get_score_color(score: int) -> str:
+def get_score_color(score: Optional[int]) -> str:
     """
     Get color code for a score.
 
@@ -317,6 +308,8 @@ def get_score_color(score: int) -> str:
     Returns:
         Hex color code
     """
+    if score is None:
+        return "#95a5a6"  # Gray
     if score >= 80:
         return "#27ae60"  # Green
     elif score >= 60:
@@ -327,3 +320,104 @@ def get_score_color(score: int) -> str:
         return "#e74c3c"  # Red
     else:
         return "#c0392b"  # Dark red
+
+
+def get_detailed_scores(
+    all_pillars: Dict[str, Dict[str, Any]],
+    ecosystem_type: str = "default"
+) -> Dict[str, Any]:
+    """
+    Calculate comprehensive PHI scores with full breakdown.
+
+    Returns a complete scoring result including:
+    - Overall PHI score
+    - Individual pillar scores
+    - Per-metric normalized scores
+    - ESV multiplier
+    - Ecosystem type used for weighting
+
+    Args:
+        all_pillars: Dict of pillar data with metrics
+                    Format: {"A_atmospheric": {"metrics": {...}}, ...}
+        ecosystem_type: Detected ecosystem type
+
+    Returns:
+        Comprehensive scoring result dictionary
+    """
+    pillar_scores = {}
+    metric_scores = {}
+
+    for pillar_id in ["A", "B", "C", "D", "E"]:
+        # Find metrics for this pillar in the all_pillars dict
+        pillar_metrics = {}
+        for key, pillar_data in all_pillars.items():
+            if key.startswith(pillar_id):
+                pillar_metrics = pillar_data.get("metrics", {})
+                break
+
+        score, metrics = calculate_category_score(pillar_id, pillar_metrics)
+        pillar_scores[pillar_id] = score
+        metric_scores[pillar_id] = metrics
+
+    overall = calculate_overall_score(pillar_scores, ecosystem_type)
+    esv_multiplier = calculate_phi_esv_multiplier(overall) if overall else None
+
+    # Get the weights used
+    ecosystem_config = ECOSYSTEM_CATEGORY_WEIGHTS.get(
+        ecosystem_type,
+        ECOSYSTEM_CATEGORY_WEIGHTS["default"]
+    )
+    weights_used = {k: v for k, v in ecosystem_config.items() if k in ["A", "B", "C", "D", "E"]}
+
+    return {
+        "overall_score": overall,
+        "overall_interpretation": get_score_interpretation(round(overall) if overall else None),
+        "pillar_scores": pillar_scores,
+        "metric_scores": metric_scores,
+        "ecosystem_type": ecosystem_type,
+        "esv_multiplier": esv_multiplier,
+        "weights_used": weights_used,
+        "methodology": "PHI Technical Framework v1.0"
+    }
+
+
+def get_metric_score_breakdown(
+    metric_name: str,
+    value: float
+) -> Dict[str, Any]:
+    """
+    Get detailed breakdown of how a metric value was scored.
+
+    Useful for debugging and explaining scores to users.
+
+    Args:
+        metric_name: Name of the metric
+        value: Raw metric value
+
+    Returns:
+        Dict with scoring breakdown including parameters used
+    """
+    params = PHI_METRIC_PARAMS.get(metric_name)
+    if not params:
+        return {
+            "metric": metric_name,
+            "raw_value": value,
+            "score": None,
+            "error": "Metric not configured"
+        }
+
+    score = normalize_metric(metric_name, value)
+
+    return {
+        "metric": metric_name,
+        "raw_value": value,
+        "score": round(score, 2) if score else None,
+        "normalization_type": params.get("norm_type"),
+        "v_min": params.get("v_min"),
+        "v_max": params.get("v_max"),
+        "v_opt": params.get("v_opt"),
+        "sigma": params.get("sigma"),
+        "weight": params.get("weight"),
+        "criticality": params.get("criticality"),
+        "category": params.get("category")
+    }
