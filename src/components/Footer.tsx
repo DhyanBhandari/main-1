@@ -12,7 +12,7 @@ const Footer = () => {
                             <img src={logo} alt="ErthaLoka Logo" className="h-10 w-auto" />
                         </Link>
                         <p className="text-[#0D2821] leading-relaxed max-w-sm">
-                            We turn the planet's health into its most valuable asset. Join us in building the first economy that grows by healing.
+                            The Operating System for the Natural Economy. Where Preservation is More Profitable Than Destruction.
                         </p>
                         {/* <div className="flex items-center gap-4">
                             {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
@@ -30,9 +30,9 @@ const Footer = () => {
                     {/* Links Columns */}
                     <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-8">
                         <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-[#0D2821] uppercase">Solutions</h3>
+                            <h3 className="text-sm font-semibold tracking-wider text-[#0D2821] uppercase">For You</h3>
                             <ul className="space-y-4">
-                                {[{ name: "Measure", path: "/measure" }, { name: "Verify", path: "/verify" }, { name: "Value", path: "/abcde-framework" }].map((item) => (
+                                {[{ name: "Landowners", path: "/landowners" }, { name: "Corporates & Investors", path: "/corporates-investors" }, { name: "Financial Institutions", path: "/financial-institutions" }].map((item) => (
                                     <li key={item.name}>
                                         <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
                                             {item.name}
@@ -45,7 +45,20 @@ const Footer = () => {
                         <div className="space-y-6">
                             <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Technology</h3>
                             <ul className="space-y-4">
-                                {[{ name: "PHI", path: "/abcde-framework" }, { name: "Di-NCA", path: "/Data" }, { name: "B-POP", path: "/bpop" }].map((item) => (
+                                {[{ name: "Trust Center", path: "/technology" }, { name: "PHI Framework", path: "/abcde-framework" }, { name: "EPA Registry", path: "/projects/current" }].map((item) => (
+                                    <li key={item.name}>
+                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
+                                            {item.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="space-y-6">
+                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Process</h3>
+                            <ul className="space-y-4">
+                                {[{ name: "Measure", path: "/measure" }, { name: "Verify", path: "/verify" }, { name: "Value", path: "/abcde-framework" }].map((item) => (
                                     <li key={item.name}>
                                         <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
                                             {item.name}
@@ -58,24 +71,17 @@ const Footer = () => {
                         <div className="space-y-6">
                             <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Company</h3>
                             <ul className="space-y-4">
-                                {[{ name: "About Us", path: "/about" }, { name: "Technology", path: "/technology" }, { name: "EPA Collectives", path: "/projects/current" }].map((item) => (
+                                {[{ name: "About Us", path: "/about" }, { name: "Contact", path: "mailto:connect@erthaloka.com" }].map((item) => (
                                     <li key={item.name}>
-                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
-                                            {item.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Use Cases</h3>
-                            <ul className="space-y-4">
-                                {[{ name: "Investors", path: "/investors" }, { name: "Corporates", path: "/corporates" }].map((item) => (
-                                    <li key={item.name}>
-                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
-                                            {item.name}
-                                        </Link>
+                                        {item.path.startsWith("mailto:") ? (
+                                            <a href={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
+                                                {item.name}
+                                            </a>
+                                        ) : (
+                                            <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
+                                                {item.name}
+                                            </Link>
+                                        )}
                                     </li>
                                 ))}
                             </ul>

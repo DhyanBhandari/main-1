@@ -57,12 +57,12 @@ const HomePage = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="text-4xl sm:text-6xl md:text-6xl lg:text-xxl font-bold tracking-tighter text-gray-900 mb-8 leading-[0.9]"
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-xxl font-bold tracking-tighter text-gray-900 mb-8 leading-[0.95]"
                 >
-                  Making Preservation <br />     
+                  The Operating System for the{" "}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0D2821] to-[#065f46]">
-                  Profitable
-                  </span> 
+                  Natural Economy
+                  </span>
                 </motion.h1>
 
                 <motion.p
@@ -71,7 +71,7 @@ const HomePage = () => {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="text-lg sm:text-xl md:text-2xl text-black max-w-xl mx-auto lg:mx-0 mb-12 font-light leading-relaxed font-sans"
                 >
-                  We turn the planet's health into its most valuable asset. Join the first economy that grows by healing.
+                  Where Preservation is More Profitable Than Destruction. Building the infrastructure for the next economy.
                 </motion.p>
 
                 <motion.div
@@ -80,11 +80,11 @@ const HomePage = () => {
                   transition={{ duration: 0.6, delay: 0.3 }}
                   className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center"
                 >
-                  <Button asChild size="lg" className="h-14 px-12 rounded-full bg-[#0D2821] hover:bg-[#065f46] text-white shadow-[0_0_20px_-5px_rgba(22,163,74,0.4)] hover:shadow-[0_0_25px_-5px_rgba(22,163,74,0.6)] hover:scale-105 transition-all duration-300 text-lg font-medium">
-                    <Link to="/Data">Explore</Link>
+                  <Button asChild size="lg" className="h-14 px-10 rounded-full bg-[#0D2821] hover:bg-[#065f46] text-white shadow-[0_0_20px_-5px_rgba(22,163,74,0.4)] hover:shadow-[0_0_25px_-5px_rgba(22,163,74,0.6)] hover:scale-105 transition-all duration-300 text-lg font-medium">
+                    <Link to="/landowners">For Landowners</Link>
                   </Button>
-                  <Button asChild size="lg" className="h-14 px-12 rounded-full bg-[#0D2821] hover:bg-[#065f46] text-white shadow-[0_0_20px_-5px_rgba(22,163,74,0.4)] hover:shadow-[0_0_25px_-5px_rgba(22,163,74,0.6)] hover:scale-105 transition-all duration-300 text-lg font-medium">
-                    <Link to="/technology">Partner</Link>
+                  <Button asChild size="lg" className="h-14 px-10 rounded-full bg-transparent border-2 border-[#0D2821] text-[#0D2821] hover:bg-[#0D2821] hover:text-white shadow-none hover:shadow-[0_0_25px_-5px_rgba(22,163,74,0.6)] hover:scale-105 transition-all duration-300 text-lg font-medium">
+                    <Link to="/corporates-investors">For Buyers</Link>
                   </Button>
                 </motion.div>
               </div>

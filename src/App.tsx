@@ -10,8 +10,6 @@ import HomePage from "@/pages/HomePage";
 import Measure from "@/pages/Measure";
 import Verify from "@/pages/Verify";
 import ABCDEFramework from "@/pages/ABCDEFramework";
-import Investors from "@/pages/Investors";
-import Corporates from "@/pages/Corporates";
 import Technology from "@/components/TechnologyShowcase";
 import About from "@/pages/About";
 import NotFound from "@/pages/NotFound";
@@ -22,6 +20,10 @@ import BPOP from "@/pages/BPOP";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import { AuthProvider } from "@/auth";
+// New audience-centric pages
+import Landowners from "@/pages/Landowners";
+import CorporatesInvestors from "@/pages/CorporatesInvestors";
+import FinancialInstitutions from "@/pages/FinancialInstitutions";
 
 const queryClient = new QueryClient();
 
@@ -31,19 +33,27 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
+
+        {/* New audience-centric routes */}
+        <Route path="/landowners" element={<PageTransition><Landowners /></PageTransition>} />
+        <Route path="/corporates-investors" element={<PageTransition><CorporatesInvestors /></PageTransition>} />
+        <Route path="/financial-institutions" element={<PageTransition><FinancialInstitutions /></PageTransition>} />
+
+        {/* Technology & Process routes */}
         <Route path="/measure" element={<PageTransition><Measure /></PageTransition>} />
         <Route path="/verify" element={<PageTransition><Verify /></PageTransition>} />
         <Route path="/abcde-framework" element={<PageTransition><ABCDEFramework /></PageTransition>} />
-        <Route path="/investors" element={<PageTransition><Investors /></PageTransition>} />
-        <Route path="/corporates" element={<PageTransition><Corporates /></PageTransition>} />
         <Route path="/technology" element={<PageTransition><Technology /></PageTransition>} />
         <Route path="/projects/current" element={<PageTransition><CurrentProjects /></PageTransition>} />
+
+        {/* Company & utility routes */}
         <Route path="/about" element={<PageTransition><About /></PageTransition>} />
         <Route path="/Data" element={<PageTransition><Data /></PageTransition>} />
         <Route path="/getthereport" element={<PageTransition><GetTheReport /></PageTransition>} />
         <Route path="/bpop" element={<PageTransition><BPOP /></PageTransition>} />
         <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
         <Route path="/terms-of-service" element={<PageTransition><TermsOfService /></PageTransition>} />
+
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
