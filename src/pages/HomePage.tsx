@@ -1,6 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Leaf, Database, ShieldCheck, TrendingUp, Play } from "lucide-react";
+import { ArrowRight, Leaf, Database, ShieldCheck, TrendingUp, Play, Sprout, Building2, Landmark } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -18,6 +18,8 @@ import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 
 import { PartnersCarousel } from "@/components/PartnersCarousel";
 import { InfiniteScrollPartners } from "@/components/InfiniteScrollPartners";
+import ImpactTicker from "@/components/ImpactTicker";
+import AudienceCard from "@/components/AudienceCard";
 
 const HomePage = () => {
   const { scrollY, scrollYProgress } = useScroll();
@@ -102,53 +104,97 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Solution Section (Tech Cards) */}
-        <section className="py-16 relative">
+        {/* Impact Ticker */}
+        <ImpactTicker />
+
+        {/* Audience Cards Section */}
+        <section className="py-20 relative">
           <div className="container px-6 mx-auto">
-            <div className="text-center mb-24">
-              {/* <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-gray-900 mb-6">
-                <span className="text-green-800">MVP</span> 
-              </h2> */}
-              {/* <p className="text-xl text-gray-500 max-w-2xl mx-auto font-sans leading-relaxed">
-                Diagnosing the planet's health through advanced technology and financial innovation.
-              </p> */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-gray-900 mb-6">
+                Built for <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0D2821] to-[#065f46]">Everyone</span> in the Natural Economy
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Whether you're providing ecosystem services or investing in them, we have solutions for you.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <AudienceCard
+                title="Landowners & Developers"
+                subtitle="Supply Side"
+                description="Turn your land into a high-yield asset. Generate new, reliable income from ecosystem services your healthy land already provides."
+                href="/landowners"
+                icon={Sprout}
+                delay={0.1}
+              />
+              <AudienceCard
+                title="Corporates & Investors"
+                subtitle="Demand Side"
+                description="Access high-integrity, data-driven ecological assets to meet net-zero and nature-positive goals with real-time verification."
+                href="/corporates-investors"
+                icon={Building2}
+                delay={0.2}
+              />
+              <AudienceCard
+                title="Financial Institutions"
+                subtitle="Accelerators"
+                description="Future-proof your financial products with planetary data. Integrate natural capital metrics into lending and risk models."
+                href="/financial-institutions"
+                icon={Landmark}
+                delay={0.3}
+              />
             </div>
+          </div>
+        </section>
+
+        {/* Process Section (How It Works) */}
+        <section className="py-16 bg-white relative">
+          <div className="container px-6 mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-gray-900 mb-4">
+                How It Works
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Our technology platform powers the entire lifecycle of ecological assets.
+              </p>
+            </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <TechCard
                 title="MEASURE"
                 description="AI, Remote Sensing & IoT capture real-time ecosystem intelligence."
-                //icon={Database}
                 delay={0.1}
                 animationStage="source"
                 href="/measure"
               />
               <TechCard
                 title="VERIFY"
-                description="Datanomics ensures transparent, immutable data integrity."
-               //icon={ShieldCheck}
+                description="Blockchain-backed verification ensures transparent, immutable data integrity."
                 delay={0.2}
                 animationStage="diligence"
                 href="/verify"
               />
               <TechCard
                 title="VALUE"
-                description="Proprietary quantifies ecological performance."
-                //icon={TrendingUp}
+                description="PHI framework quantifies ecological performance into tradeable assets."
                 delay={0.3}
                 animationStage="track"
                 href="/abcde-framework"
               />
             </div>
-            {/* <TechCard
-              title="PARTNER"
-              description="Marketplace links investors, communities & corporates."
-              icon={Leaf}
-              delay={0.4}
-              image={connectImg}
-              href="/technology"
-              buttonText="Partner Us"
-            /> */}
           </div>
         </section>
 
