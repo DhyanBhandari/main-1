@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Leaf, TrendingUp, Shield, Users, CheckCircle, ArrowRight } from "lucide-react";
+import { Leaf, TrendingUp, Shield, Users, CheckCircle, ArrowRight, FileText } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
+import { ContractCard } from "@/components/ContractExplainer";
 
 const Landowners = () => {
   return (
@@ -153,6 +154,52 @@ const Landowners = () => {
               </table>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* The LSA Contract */}
+      <section className="py-20 bg-gray-50">
+        <div className="container px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                <FileText className="h-4 w-4" />
+                YOUR CONTRACT
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#0D2821]">
+                The Land Stewardship Agreement
+              </h2>
+              <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+                Our simple, transparent contract that grants ErthaLoka the rights to measure, verify, and monetize the ecosystem services your land provides while you retain full ownership.
+              </p>
+              <ul className="space-y-4">
+                {[
+                  "10-20 year partnership term with flexibility",
+                  "Minimum payment guarantees every quarter",
+                  "Clear stewardship guidelines and support",
+                  "Revenue sharing on all verified credits"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-center gap-3 text-gray-700">
+                    <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <ContractCard contractId="lsa" />
+            </motion.div>
+          </div>
         </div>
       </section>
 

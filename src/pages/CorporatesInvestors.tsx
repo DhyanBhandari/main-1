@@ -5,6 +5,7 @@ import { Shield, TrendingUp, BarChart3, Globe, CheckCircle, ArrowRight, Building
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
+import { ContractFlowSimple } from "@/components/ContractExplainer";
 
 const CorporatesInvestors = () => {
   return (
@@ -326,6 +327,38 @@ const CorporatesInvestors = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Contract Framework */}
+      <section className="py-20 bg-white">
+        <div className="container px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#0D2821]">How It Works</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our three-contract framework ensures transparency and trust at every step.
+            </p>
+          </motion.div>
+          <ContractFlowSimple className="mb-8" />
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Through our <span className="font-semibold text-purple-600">Forward Purchase Agreement (FPA)</span>,
+              you pre-commit to purchasing verified Ecological Performance Certificates (EPCs),
+              securing your supply while supporting landowner conservation efforts.
+            </p>
+          </motion.div>
         </div>
       </section>
 
