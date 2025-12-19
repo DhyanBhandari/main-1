@@ -1,4 +1,4 @@
-// DNAC or Di-NCA PAGE IN HOMEPAGE
+// Natural Capital / EPA Process Section in Homepage
 import { motion } from "framer-motion";
 import { Database, ShieldCheck, TrendingUp } from "lucide-react";
 import measureImg from "@/assets/measure.png";
