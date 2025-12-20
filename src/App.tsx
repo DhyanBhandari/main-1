@@ -24,6 +24,7 @@ import { AuthProvider } from "@/auth";
 import Landowners from "@/pages/Landowners";
 import CorporatesInvestors from "@/pages/CorporatesInvestors";
 import FinancialInstitutions from "@/pages/FinancialInstitutions";
+import Blockchain from "@/pages/Blockchain";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const AnimatedRoutes = () => {
         {/* Technology & Process routes */}
         <Route path="/measure" element={<PageTransition><Measure /></PageTransition>} />
         <Route path="/verify" element={<PageTransition><Verify /></PageTransition>} />
+        <Route path="/blockchain" element={<PageTransition><Blockchain /></PageTransition>} />
         <Route path="/abcde-framework" element={<PageTransition><ABCDEFramework /></PageTransition>} />
         <Route path="/technology" element={<PageTransition><Technology /></PageTransition>} />
         <Route path="/projects/current" element={<PageTransition><CurrentProjects /></PageTransition>} />

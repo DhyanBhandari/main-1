@@ -155,7 +155,7 @@ const Header = () => {
                       role="menuitem"
                     >
                       <div className="text-sm font-medium text-gray-900 group-hover:text-green-800">
-                        Measure
+                        DMRV
                       </div>
                     </Link>
                   </li>
@@ -166,7 +166,18 @@ const Header = () => {
                       role="menuitem"
                     >
                       <div className="text-sm font-medium text-gray-900 group-hover:text-green-800">
-                        Verify
+                        NCA
+                      </div>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/blockchain"
+                      className="group flex items-center justify-center rounded-lg p-2 leading-none no-underline outline-none transition-all hover:bg-green-50/30 hover:backdrop-blur-sm focus:bg-green-50/30"
+                      role="menuitem"
+                    >
+                      <div className="text-sm font-medium text-gray-900 group-hover:text-green-800">
+                        Blockchain
                       </div>
                     </Link>
                   </li>
@@ -255,8 +266,9 @@ const Header = () => {
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Technology</h3>
                   <Link to="/technology" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>Trust Center</Link>
                   <Link to="/abcde-framework" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>PHI Framework</Link>
-                  <Link to="/measure" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>Measure</Link>
-                  <Link to="/verify" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>Verify</Link>
+                  <Link to="/measure" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>DMRV</Link>
+                  <Link to="/verify" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>NCA</Link>
+                  <Link to="/blockchain" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>Blockchain</Link>
                   <Link to="/projects/current" className="block text-lg font-medium text-gray-900 hover:text-green-700 transition-colors" onClick={() => setMobileMenuOpen(false)}>EPA Registry</Link>
                 </div>
 

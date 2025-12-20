@@ -174,25 +174,25 @@ const HomePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <TechCard
-                title="MEASURE"
-                description="AI, Remote Sensing & IoT capture real-time ecosystem intelligence."
+                title="DMRV"
+                description="AI, Remote Sensing & IoT capture real-time ecosystem intelligence with digital MRV."
                 delay={0.1}
                 animationStage="source"
                 href="/measure"
               />
               <TechCard
-                title="VERIFY"
-                description="Blockchain-backed verification ensures transparent, immutable data integrity."
+                title="NCA"
+                description="Natural Capital Accounting transforms ecosystem data into verified financial assets."
                 delay={0.2}
                 animationStage="diligence"
                 href="/verify"
               />
               <TechCard
-                title="VALUE"
-                description="PHI framework quantifies ecological performance into tradeable assets."
+                title="BLOCKCHAIN"
+                description="Immutable ledger technology ensures transparent, tamper-proof data integrity."
                 delay={0.3}
                 animationStage="track"
-                href="/abcde-framework"
+                href="/blockchain"
               />
             </div>
           </div>
