@@ -985,50 +985,50 @@ const Dashboard = () => {
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6"
+                className="mb-4 sm:mb-6"
               >
-                <div className="flex items-center gap-4">
+                {/* Title Row */}
+                <div className="flex items-center gap-3 mb-3">
                   <button
                     onClick={() => navigate("/")}
-                    className="p-2 rounded-full bg-white hover:bg-gray-100 shadow-sm transition-all"
+                    className="p-2 rounded-full bg-white hover:bg-gray-100 shadow-sm transition-all shrink-0"
                   >
-                    <ArrowLeft className="w-5 h-5 text-gray-600" />
+                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                   </button>
-                  <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  <div className="min-w-0">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">
                       Monitoring Dashboard
                     </h1>
                     {satellite?.ecosystem_type && (
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full capitalize">
-                          {satellite.ecosystem_type.replace(/_/g, " ")}
-                        </span>
-                      </div>
+                      <span className="inline-block text-xs sm:text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full capitalize mt-1">
+                        {satellite.ecosystem_type.replace(/_/g, " ")}
+                      </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                {/* Status Row */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   {lastUpdated && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Clock className="w-4 h-4" />
-                      <span title={lastUpdated.toLocaleString()}>{getDataAge()}</span>
+                    <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{getDataAge()}</span>
                       {dataSource === 'stored' && !refreshing && (
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full flex items-center gap-1">
                           <Database className="w-3 h-3" />
-                          Stored
+                          <span className="hidden sm:inline">Stored</span>
                         </span>
                       )}
                       {dataSource === 'live' && !refreshing && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
-                          Live
+                          <span className="hidden sm:inline">Live</span>
                         </span>
                       )}
                       {refreshing && (
-                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full flex items-center gap-1">
                           <RefreshCw className="w-3 h-3 animate-spin" />
-                          Fetching from GEE...
+                          <span className="hidden sm:inline">Fetching...</span>
                         </span>
                       )}
                     </div>
@@ -1036,9 +1036,9 @@ const Dashboard = () => {
                   <button
                     onClick={handleRefresh}
                     disabled={refreshing}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0D2821] text-white hover:bg-[#0D2821]/90 transition-all disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-[#0D2821] text-white text-sm hover:bg-[#0D2821]/90 transition-all disabled:opacity-50"
                   >
-                    <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
                     <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
                   </button>
                 </div>
@@ -1069,8 +1069,8 @@ const Dashboard = () => {
                       viewport={{ once: true }}
                       className="space-y-4"
                     >
-                      {/* Pillar Score Cards */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+                      {/* Pillar Score Cards - Stack on mobile, 2-3 cols on tablet, 5 on desktop */}
+                      <div className="flex flex-col gap-3 min-[400px]:grid min-[400px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                         {Object.entries(PILLAR_CONFIG).map(([key, config], index) => {
                           const Icon = config.icon;
                           const score = satellite?.pillar_scores?.[key] || 0;
@@ -1112,16 +1112,16 @@ const Dashboard = () => {
                       </div>
 
                       {/* Overview Charts */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
                         {/* Radar Chart */}
-                        <div className="bg-white rounded-xl border border-gray-200 p-4">
+                        <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
                           <h3 className="text-sm font-semibold text-gray-700 mb-3">Pillar Performance Radar</h3>
                           {getRadarData().length >= 3 ? (
-                            <ResponsiveContainer width="100%" height={220}>
-                              <RadarChart data={getRadarData()}>
+                            <ResponsiveContainer width="100%" height={200}>
+                              <RadarChart data={getRadarData()} cx="50%" cy="50%" outerRadius="65%">
                                 <PolarGrid stroke="#e5e7eb" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
+                                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
+                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <Radar
                                   name="Score"
                                   dataKey="score"
@@ -1134,7 +1134,7 @@ const Dashboard = () => {
                               </RadarChart>
                             </ResponsiveContainer>
                           ) : (
-                            <div className="h-64 flex items-center justify-center text-gray-400">Loading data...</div>
+                            <div className="h-48 flex items-center justify-center text-gray-400">Loading data...</div>
                           )}
                         </div>
 
