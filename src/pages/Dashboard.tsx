@@ -36,8 +36,11 @@ import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 // Default coordinates (Puducherry)
 const DEFAULT_LAT = 11.904654050297719;
 const DEFAULT_LON = 79.80346929324504;
-const API_BASE = "http://127.0.0.1:8000/api/dashboard";
-const IMAGERY_BASE = "http://127.0.0.1:8000/api/imagery";
+
+// API URLs - use environment variable or fallback to localhost for development
+const API_URL = import.meta.env.VITE_PHI_API_URL || import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const API_BASE = `${API_URL}/api/dashboard`;
+const IMAGERY_BASE = `${API_URL}/api/imagery`;
 
 // Pillar configuration with proper naming
 const PILLAR_CONFIG = {
