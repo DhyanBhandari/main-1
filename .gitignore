@@ -90,5 +90,6 @@ nul
 NUL
 
 # ========== DOCUMENTATION FOLDERS ==========
-new/
-i/
+# Only ignore root-level new/ and i/ folders (not src/assets/new/)
+/new/
+/i/
