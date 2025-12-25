@@ -46,6 +46,23 @@ class QueryRequest(BaseModel):
     user_email: Optional[str] = Field(default=None, description="User email")
 
 
+class PolygonPoint(BaseModel):
+    """Single point in a polygon."""
+    lat: float = Field(..., ge=-90, le=90, description="Latitude")
+    lng: float = Field(..., ge=-180, le=180, description="Longitude")
+    label: Optional[str] = Field(default=None, description="Point label (e.g., 'NW', 'NE', 'SE', 'SW')")
+
+
+class PolygonQueryRequest(BaseModel):
+    """Request model for polygon (4-point) land parcel queries."""
+    points: list[PolygonPoint] = Field(..., min_length=4, max_length=4, description="4 corner points of polygon")
+    mode: str = Field(default="comprehensive", description="Query mode: 'simple' or 'comprehensive'")
+    include_scores: bool = Field(default=True, description="Include pillar scores")
+    # User tracking fields
+    user_id: str = Field(default="anonymous", description="Firebase user ID")
+    user_email: Optional[str] = Field(default=None, description="User email")
+
+
 class QueryResponse(BaseModel):
     """Response model for location queries."""
     success: bool
@@ -124,6 +141,86 @@ async def query_satellite_data(request: QueryRequest, http_request: Request, bac
         query_id = await log_query(
             lat=request.lat,
             lon=request.lon,
+            result=result,
+            user_id=request.user_id,
+            user_email=request.user_email,
+            mode=request.mode,
+            ip_address=client_ip
+        )
+
+        return QueryResponse(
+            success=True,
+            data=result,
+            query_id=query_id
+        )
+
+    except Exception as e:
+        traceback.print_exc()
+        return QueryResponse(
+            success=False,
+            error=str(e)
+        )
+
+
+@router.post("/query/polygon", response_model=QueryResponse)
+async def query_polygon_satellite_data(request: PolygonQueryRequest, http_request: Request, background_tasks: BackgroundTasks):
+    """
+    Query satellite data for a polygon area defined by 4 corner points.
+
+    This endpoint is for authenticated users who want to analyze a specific land parcel.
+    It returns all 5 planetary health pillars plus:
+    - Exact polygon area in hectares
+    - Carbon credits calculation
+    - Ecosystem Service Value (ESV) estimation
+
+    Points should be provided in order: NW, NE, SE, SW (clockwise from northwest).
+    """
+    try:
+        # Get client IP for logging
+        client_ip = None
+        if http_request.client:
+            client_ip = http_request.client.host
+
+        # Import the polygon query function
+        from app.services.earth_engine import query_polygon
+
+        # Convert points to dict format expected by engine
+        points_dict = [{"lat": p.lat, "lng": p.lng} for p in request.points]
+
+        # Query Earth Engine with polygon
+        result = query_polygon(
+            points=points_dict,
+            mode=request.mode,
+            include_scores=request.include_scores
+        )
+
+        # Calculate centroid for external API calls
+        centroid_lat = sum(p.lat for p in request.points) / 4
+        centroid_lng = sum(p.lng for p in request.points) / 4
+
+        # Fetch Open-Meteo data for the centroid
+        try:
+            from app.services.external_apis.aggregator import get_aggregator
+            aggregator = get_aggregator()
+
+            # Get comprehensive external data for centroid
+            external_data = await aggregator.get_comprehensive_data(centroid_lat, centroid_lng)
+
+            # Apply fallbacks for N/A metrics
+            result = apply_open_meteo_fallbacks(result, external_data)
+
+            # Add weather data to result
+            result["weather"] = external_data.get("weather", {})
+            result["external_sources"] = external_data.get("sources", [])
+
+        except Exception as ext_error:
+            print(f"External API fallback error for polygon: {ext_error}")
+            # Continue without external data
+
+        # Log query with user tracking
+        query_id = await log_query(
+            lat=centroid_lat,
+            lon=centroid_lng,
             result=result,
             user_id=request.user_id,
             user_email=request.user_email,

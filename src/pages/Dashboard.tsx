@@ -4,7 +4,7 @@
  * Complete dashboard with:
  * - Left sidebar navigation with scroll-based highlighting
  * - All 25 metrics (5 per pillar) with rich visual representations
- * - Satellite imagery viewer
+ * - Remote sensing imagery viewer
  * - Live data graphs for real-time weather/AQI
  * - Intersection Observer for active section detection
  */
@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Thermometer, Droplets, Wind, Cloud, Sun, Gauge,
   Leaf, TreeDeciduous, Activity, Waves, Users,
-  ArrowLeft, RefreshCw, MapPin, Clock, Satellite,
+  ArrowLeft, RefreshCw, MapPin, Clock,
   AlertCircle, CheckCircle2, Mountain, Zap, TreePine,
   Eye, Globe, Layers, Image, ChevronRight, BarChart3,
   TrendingUp, TrendingDown, Minus, Factory, Home,
@@ -44,14 +44,14 @@ const PILLAR_CONFIG = {
   A: { id: "A", name: "Atmospheric", fullName: "Atmospheric Health", color: "#3498db", icon: Wind, gradient: "from-blue-500 to-blue-600" },
   B: { id: "B", name: "Biodiversity", fullName: "Biodiversity", color: "#27ae60", icon: Leaf, gradient: "from-green-500 to-green-600" },
   C: { id: "C", name: "Climate", fullName: "Climate", color: "#8e44ad", icon: TreePine, gradient: "from-purple-500 to-purple-600" },
-  D: { id: "D", name: "Degradation", fullName: "Decrease in Land & Water Degradation", color: "#e74c3c", icon: Thermometer, gradient: "from-red-500 to-red-600" },
+  D: { id: "D", name: "DLWD", fullName: "Decrease in Land & Water Degradation", color: "#e74c3c", icon: Thermometer, gradient: "from-red-500 to-red-600" },
   E: { id: "E", name: "Ecosystem", fullName: "Ecosystem Services", color: "#f39c12", icon: Globe, gradient: "from-orange-500 to-orange-600" },
 };
 
 // Metric configurations with descriptions and units - ALL METRICS FROM PHI REPORT
 const METRIC_CONFIG: Record<string, { label: string; unit: string; description: string; icon: any; min?: number; max?: number }> = {
-  // Pillar A - Atmospheric (18 metrics: satellite + realtime weather + AQI)
-  aod: { label: "Aerosol Optical Depth", unit: "", description: "Atmospheric particle density (satellite)", icon: Cloud, min: 0, max: 1 },
+  // Pillar A - Atmospheric (18 metrics: remote sensing + realtime weather + AQI)
+  aod: { label: "Aerosol Optical Depth", unit: "", description: "Atmospheric particle density", icon: Cloud, min: 0, max: 1 },
   visibility: { label: "Visibility", unit: "km", description: "Atmospheric clarity (derived from AOD)", icon: Eye, min: 0, max: 50 },
   temperature: { label: "Air Temperature", unit: "°C", description: "Current ambient temperature", icon: Thermometer, min: -20, max: 50 },
   feels_like: { label: "Feels Like", unit: "°C", description: "Apparent temperature", icon: Thermometer, min: -20, max: 50 },
@@ -67,7 +67,7 @@ const METRIC_CONFIG: Record<string, { label: string; unit: string; description: 
   ozone: { label: "Ozone (O₃)", unit: "μg/m³", description: "Ground-level ozone", icon: Wind, min: 0, max: 200 },
   carbon_monoxide: { label: "Carbon Monoxide", unit: "μg/m³", description: "CO concentration", icon: Factory, min: 0, max: 1000 },
   nitrogen_dioxide: { label: "Nitrogen Dioxide", unit: "μg/m³", description: "NO₂ concentration", icon: Factory, min: 0, max: 100 },
-  cloud_fraction: { label: "Cloud Fraction", unit: "fraction", description: "Cloud coverage fraction (satellite)", icon: Cloud, min: 0, max: 1 },
+  cloud_fraction: { label: "Cloud Fraction", unit: "fraction", description: "Cloud coverage fraction", icon: Cloud, min: 0, max: 1 },
 
   // Pillar B - Biodiversity (5 metrics) - EVI can exceed 1 for dense vegetation
   ndvi: { label: "NDVI", unit: "", description: "Vegetation greenness (-1 to 1)", icon: Leaf, min: -1, max: 1 },
@@ -83,7 +83,7 @@ const METRIC_CONFIG: Record<string, { label: string; unit: string; description: 
   biomass: { label: "Biomass", unit: "Mg/ha", description: "Above-ground biomass density", icon: Shrub, min: 0, max: 500 },
   carbon_stock: { label: "Carbon Stock", unit: "Mg C/ha", description: "Stored carbon equivalent", icon: Factory, min: 0, max: 250 },
 
-  // Pillar D - Degradation (8 metrics from satellite)
+  // Pillar D - Degradation (8 metrics)
   lst: { label: "Land Surface Temp (Day)", unit: "°C", description: "Daytime ground temperature", icon: Thermometer, min: -20, max: 60 },
   lst_night: { label: "Land Surface Temp (Night)", unit: "°C", description: "Nighttime ground temperature", icon: Thermometer, min: -20, max: 40 },
   diurnal_range: { label: "Diurnal Temp Range", unit: "°C", description: "Day-night temperature difference", icon: Thermometer, min: 0, max: 30 },
@@ -519,23 +519,23 @@ const Dashboard = () => {
     if (pillarKey === 'A') {
       // Add weather metrics
       if (weather) {
-        flattenedMetrics['temperature'] = { value: weather.temperature, unit: '°C', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['feels_like'] = { value: weather.feels_like, unit: '°C', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['humidity'] = { value: weather.humidity, unit: '%', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['cloud_cover'] = { value: weather.cloud_cover, unit: '%', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['pressure'] = { value: weather.pressure, unit: 'hPa', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['wind_speed'] = { value: weather.wind_speed, unit: 'km/h', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['wind_direction'] = { value: weather.wind_direction, unit: '°', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['uv_index'] = { value: weather.uv_index_max, unit: 'index', quality: 'good', source: 'Open-Meteo' };
+        flattenedMetrics['temperature'] = { value: weather.temperature, unit: '°C', quality: 'good' };
+        flattenedMetrics['feels_like'] = { value: weather.feels_like, unit: '°C', quality: 'good' };
+        flattenedMetrics['humidity'] = { value: weather.humidity, unit: '%', quality: 'good' };
+        flattenedMetrics['cloud_cover'] = { value: weather.cloud_cover, unit: '%', quality: 'good' };
+        flattenedMetrics['pressure'] = { value: weather.pressure, unit: 'hPa', quality: 'good' };
+        flattenedMetrics['wind_speed'] = { value: weather.wind_speed, unit: 'km/h', quality: 'good' };
+        flattenedMetrics['wind_direction'] = { value: weather.wind_direction, unit: '°', quality: 'good' };
+        flattenedMetrics['uv_index'] = { value: weather.uv_index_max, unit: 'index', quality: 'good' };
       }
       // Add AQI metrics
       if (aqi) {
-        flattenedMetrics['aqi'] = { value: aqi.us_aqi, unit: 'US AQI', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['pm2_5'] = { value: aqi.pm25, unit: 'μg/m³', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['pm10'] = { value: aqi.pm10, unit: 'μg/m³', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['ozone'] = { value: aqi.ozone, unit: 'μg/m³', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['carbon_monoxide'] = { value: aqi.co, unit: 'μg/m³', quality: 'good', source: 'Open-Meteo' };
-        flattenedMetrics['nitrogen_dioxide'] = { value: aqi.no2, unit: 'μg/m³', quality: 'good', source: 'Open-Meteo' };
+        flattenedMetrics['aqi'] = { value: aqi.us_aqi, unit: 'US AQI', quality: 'good' };
+        flattenedMetrics['pm2_5'] = { value: aqi.pm25, unit: 'μg/m³', quality: 'good' };
+        flattenedMetrics['pm10'] = { value: aqi.pm10, unit: 'μg/m³', quality: 'good' };
+        flattenedMetrics['ozone'] = { value: aqi.ozone, unit: 'μg/m³', quality: 'good' };
+        flattenedMetrics['carbon_monoxide'] = { value: aqi.co, unit: 'μg/m³', quality: 'good' };
+        flattenedMetrics['nitrogen_dioxide'] = { value: aqi.no2, unit: 'μg/m³', quality: 'good' };
       }
     }
 
@@ -566,13 +566,13 @@ const Dashboard = () => {
     }
 
     const metricsByPillar: Record<string, string[]> = {
-      // Pillar B: Satellite vegetation indices
+      // Pillar B: Vegetation indices
       B: ["ndvi", "evi", "lai", "fpar", "land_cover"],
-      // Pillar C: Satellite carbon/forest metrics
+      // Pillar C: Carbon/forest metrics
       C: ["tree_cover", "forest_loss", "canopy_height", "biomass", "carbon_stock"],
-      // Pillar D: Satellite land degradation metrics
+      // Pillar D: Land degradation metrics
       D: ["lst", "lst_night", "diurnal_range", "soil_moisture", "water_occurrence", "water_seasonality", "drought_index", "evaporative_stress"],
-      // Pillar E: Satellite ecosystem/human impact metrics
+      // Pillar E: Ecosystem/human impact metrics
       E: ["population", "nightlights", "human_modification", "elevation", "elevation_min", "elevation_max", "elevation_relief", "distance_to_water"],
     };
     return metricsByPillar[pillarKey] || [];
@@ -689,7 +689,7 @@ const Dashboard = () => {
                   </div>
                 </button>
 
-                {/* Satellite Imagery */}
+                {/* Remote Sensing Imagery */}
                 <button
                   onClick={() => scrollToSection("imagery")}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-300 ${
@@ -698,8 +698,8 @@ const Dashboard = () => {
                       : "hover:bg-gray-100 text-gray-700"
                   }`}
                 >
-                  <Satellite className="w-5 h-5" />
-                  <span className="font-medium">Satellite Imagery</span>
+                  <Globe className="w-5 h-5" />
+                  <span className="font-medium">Remote Sensing</span>
                 </button>
 
                 <div className="h-px bg-gray-200 my-3" />
@@ -1021,7 +1021,7 @@ const Dashboard = () => {
                               </RadarChart>
                             </ResponsiveContainer>
                           ) : (
-                            <div className="h-64 flex items-center justify-center text-gray-400">Loading satellite data...</div>
+                            <div className="h-64 flex items-center justify-center text-gray-400">Loading data...</div>
                           )}
                         </div>
 
@@ -1043,7 +1043,7 @@ const Dashboard = () => {
                               </BarChart>
                             </ResponsiveContainer>
                           ) : (
-                            <div className="h-64 flex items-center justify-center text-gray-400">Loading satellite data...</div>
+                            <div className="h-64 flex items-center justify-center text-gray-400">Loading data...</div>
                           )}
                         </div>
 
@@ -1072,7 +1072,7 @@ const Dashboard = () => {
                               </PieChart>
                             </ResponsiveContainer>
                           ) : (
-                            <div className="h-56 flex items-center justify-center text-gray-400">Loading satellite data...</div>
+                            <div className="h-56 flex items-center justify-center text-gray-400">Loading data...</div>
                           )}
                         </div>
                       </div>
@@ -1108,7 +1108,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-800">Weather</span>
-                                  <div className="text-xs text-gray-500">Open-Meteo API</div>
+                                  <div className="text-xs text-gray-500">Real-time data</div>
                                 </div>
                               </div>
                               <div className="text-right">
@@ -1183,7 +1183,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-800">Air Quality</span>
-                                  <div className="text-xs text-gray-500">Open-Meteo AQI</div>
+                                  <div className="text-xs text-gray-500">Real-time monitoring</div>
                                 </div>
                               </div>
                               <div className="text-right">
@@ -1253,7 +1253,7 @@ const Dashboard = () => {
                     </motion.div>
                   </section>
 
-                  {/* SATELLITE IMAGERY SECTION */}
+                  {/* REMOTE SENSING IMAGERY SECTION */}
                   <section ref={el => sectionRefs.current["imagery"] = el} data-section="imagery">
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -1261,8 +1261,8 @@ const Dashboard = () => {
                       viewport={{ once: true }}
                     >
                       <div className="flex items-center gap-3 mb-4">
-                        <Satellite className="w-5 h-5 text-gray-600" />
-                        <h2 className="text-xl font-bold text-gray-900">Satellite Imagery</h2>
+                        <Globe className="w-5 h-5 text-gray-600" />
+                        <h2 className="text-xl font-bold text-gray-900">Remote Sensing Imagery</h2>
                       </div>
 
                       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -1313,9 +1313,9 @@ const Dashboard = () => {
                               ) : (
                                 <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
                                   <div className="text-center text-gray-500">
-                                    <Satellite className="w-16 h-16 mx-auto mb-3 opacity-30" />
+                                    <Globe className="w-16 h-16 mx-auto mb-3 opacity-30" />
                                     <p className="font-medium">Imagery Loading...</p>
-                                    <p className="text-xs mt-1">Fetching from Google Earth Engine</p>
+                                    <p className="text-xs mt-1">Fetching remote sensing data</p>
                                   </div>
                                 </div>
                               )}
@@ -1373,13 +1373,33 @@ const Dashboard = () => {
                               <div className="bg-white rounded-xl p-3 border border-gray-100">
                                 <div className="text-xs font-semibold text-gray-600 mb-2">Metric Distribution</div>
                                 {(() => {
+                                  // Short unique labels for radar chart to avoid duplicates
+                                  const shortLabels: Record<string, string> = {
+                                    lst: "LST Day",
+                                    lst_night: "LST Night",
+                                    diurnal_range: "Diurnal",
+                                    soil_moisture: "Soil",
+                                    water_occurrence: "Water %",
+                                    water_seasonality: "Seasonal",
+                                    drought_index: "Drought",
+                                    evaporative_stress: "ET Stress",
+                                    elevation: "Elev",
+                                    elevation_min: "Elev Min",
+                                    elevation_max: "Elev Max",
+                                    elevation_relief: "Relief",
+                                    population: "Pop",
+                                    nightlights: "Lights",
+                                    human_modification: "Human",
+                                    distance_to_water: "Dist H2O",
+                                  };
+
                                   // Generate radar data and check if we have actual values
                                   const radarData = pillarMetrics.slice(0, 8).map(key => {
                                     const rawValue = metrics[key]?.value;
                                     const hasValue = rawValue !== undefined && rawValue !== null;
                                     const normalizedVal = hasValue ? getNormalizedValue(rawValue, key) : 0;
                                     return {
-                                      metric: METRIC_CONFIG[key]?.label.split(" ")[0] || key,
+                                      metric: shortLabels[key] || METRIC_CONFIG[key]?.label.split(" ")[0] || key,
                                       value: normalizedVal,
                                       rawValue: rawValue,
                                       fullMark: 100,
@@ -1396,19 +1416,24 @@ const Dashboard = () => {
                                       value: typeof d.value === 'number' && !isNaN(d.value) ? d.value : 0
                                     }));
 
+                                    // Debug: log radar data for each pillar
+                                    console.log(`Radar_${pillarKey}:`, JSON.stringify(cleanRadarData.map(d => ({ m: d.metric, v: d.value.toFixed(1) }))));
+
                                     return (
                                       <div className="h-44 w-full">
                                         <ResponsiveContainer width="100%" height={176}>
-                                          <RadarChart data={cleanRadarData} cx="50%" cy="50%" outerRadius="80%">
-                                            <PolarGrid />
+                                          <RadarChart data={cleanRadarData} cx="50%" cy="50%" outerRadius="70%">
+                                            <PolarGrid stroke="#e5e7eb" />
                                             <PolarAngleAxis dataKey="metric" tick={{ fontSize: 8 }} />
                                             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                             <Radar
                                               name={config.fullName}
                                               dataKey="value"
                                               stroke={config.color}
+                                              strokeWidth={2}
                                               fill={config.color}
-                                              fillOpacity={0.5}
+                                              fillOpacity={0.6}
+                                              dot={{ r: 3, fill: config.color }}
                                               isAnimationActive={false}
                                             />
                                             <Tooltip />
@@ -1419,7 +1444,7 @@ const Dashboard = () => {
                                   } else if (pillarMetrics.length >= 3) {
                                     return (
                                       <div className="h-44 flex flex-col items-center justify-center text-gray-400 text-xs">
-                                        <div>Awaiting satellite data...</div>
+                                        <div>Awaiting data...</div>
                                       </div>
                                     );
                                   } else {
@@ -1468,8 +1493,8 @@ const Dashboard = () => {
                                   } else {
                                     return (
                                       <div className="h-44 flex flex-col items-center justify-center text-gray-400 text-xs">
-                                        <div>Satellite data loading...</div>
-                                        <div className="text-[10px] mt-1">Waiting for GEE response</div>
+                                        <div>Data loading...</div>
+                                        <div className="text-[10px] mt-1">Waiting for response</div>
                                       </div>
                                     );
                                   }

@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Satellite, Loader2, AlertCircle, RefreshCw, MapPin, Layers } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, MapPin, Layers } from 'lucide-react';
 
 // Image type configurations
 const IMAGE_TYPES = [
@@ -142,8 +142,8 @@ const SatelliteViewer: React.FC<SatelliteViewerProps> = ({
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <Satellite className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">Satellite Imagery</h3>
+          <Layers className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">Remote Sensing Imagery</h3>
         </div>
         {locationName && (
           <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
@@ -185,7 +185,7 @@ const SatelliteViewer: React.FC<SatelliteViewerProps> = ({
         {loading ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <span className="text-sm text-muted-foreground">Loading satellite image...</span>
+            <span className="text-sm text-muted-foreground">Loading imagery...</span>
           </div>
         ) : error ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
@@ -202,7 +202,7 @@ const SatelliteViewer: React.FC<SatelliteViewerProps> = ({
         ) : imageUrl ? (
           <img
             src={imageUrl}
-            alt={`${currentType?.name || selectedType} satellite view`}
+            alt={`${currentType?.name || selectedType} imagery`}
             className="w-full h-full object-cover"
             onError={() => setError('Failed to load image')}
           />

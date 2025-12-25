@@ -173,7 +173,7 @@ const Blockchain = () => {
               {
                 icon: Database,
                 title: "Data Anchoring",
-                description: "Sensor readings and satellite data are hashed and anchored to the blockchain."
+                description: "Sensor readings and remote sensing data are hashed and anchored to the blockchain."
               },
               {
                 icon: Shield,

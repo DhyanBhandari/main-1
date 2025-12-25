@@ -151,7 +151,7 @@ export const CorporateValueTable = () => (
       {
         aspect: "Verification",
         without: "Annual third-party audits",
-        with: "Real-time satellite + IoT verification",
+        with: "Real-time remote sensing + IoT verification",
       },
       {
         aspect: "Transparency",

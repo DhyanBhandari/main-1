@@ -1,23 +1,37 @@
 /**
  * Firebase Configuration
- * Project: erthaloka
- * Project ID: erthaloka-5853f
+ *
+ * All sensitive credentials are loaded from environment variables.
+ * See .env.example for required variables.
  */
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 
-// Your web app's Firebase configuration
+// Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyC0r6VWjAfXXjFbddClJ12MsisVzyJsonI",
-  authDomain: "erthaloka-5853f.firebaseapp.com",
-  projectId: "erthaloka-5853f",
-  storageBucket: "erthaloka-5853f.firebasestorage.app",
-  messagingSenderId: "433955500624",
-  appId: "1:433955500624:web:27f7b3529fb3e809129755",
-  measurementId: "G-83LDHV28SK"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+// Validate required config
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error('Firebase configuration missing. Check your environment variables.');
+  console.error('Current config:', {
+    apiKey: firebaseConfig.apiKey ? '✓ Set' : '✗ Missing',
+    authDomain: firebaseConfig.authDomain ? '✓ Set' : '✗ Missing',
+    projectId: firebaseConfig.projectId ? '✓ Set' : '✗ Missing',
+    storageBucket: firebaseConfig.storageBucket ? '✓ Set' : '✗ Missing',
+    messagingSenderId: firebaseConfig.messagingSenderId ? '✓ Set' : '✗ Missing',
+    appId: firebaseConfig.appId ? '✓ Set' : '✗ Missing',
+  });
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

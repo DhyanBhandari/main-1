@@ -4,7 +4,7 @@ import { PartnerFormModal } from "@/components/PartnerFormModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Satellite,
+  Globe,
   Cpu,
   Calculator,
   Shield,
@@ -14,7 +14,6 @@ import {
   ArrowRight,
   CheckCircle,
   Download,
-  Globe,
   Database,
   Lock
 } from "lucide-react";
@@ -32,10 +31,10 @@ const Technology = () => {
       layer: 1,
       name: "Earth Sense",
       subtitle: "Data Collection",
-      description: "AI-powered satellite imagery, LiDAR, and IoT sensors capture real-time ecosystem data across all project sites.",
-      icon: Satellite,
+      description: "AI-powered remote sensing, LiDAR, and IoT sensors capture real-time ecosystem data across all project sites.",
+      icon: Globe,
       color: "from-blue-500 to-cyan-500",
-      features: ["Satellite imagery (10m resolution)", "LiDAR terrain mapping", "IoT ground sensors", "Spectral analysis (NDVI, EVI)"]
+      features: ["Remote sensing (10m resolution)", "LiDAR terrain mapping", "IoT ground sensors", "Spectral analysis (NDVI, EVI)"]
     },
     {
       layer: 2,

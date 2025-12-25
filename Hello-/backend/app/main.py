@@ -18,7 +18,9 @@ load_dotenv()
 from app.api import routes
 from app.api import sensor_routes
 from app.api import satellite_routes
+from app.api import dashboard_routes
 from app.services.earth_engine import initialize_ee
+from app.services.dashboard_service import get_dashboard_service
 from app.config import PDF_OUTPUT_DIR
 
 
@@ -41,6 +43,16 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Warning: Firestore initialization failed: {e}")
         print("Sensor API will attempt to initialize on first request.")
+
+    # Initialize Dashboard service
+    print("Initializing Dashboard service...")
+    try:
+        dashboard_service = get_dashboard_service()
+        await dashboard_service.initialize()
+        print("Dashboard service initialized successfully!")
+    except Exception as e:
+        print(f"Warning: Dashboard initialization failed: {e}")
+        print("Dashboard will attempt to initialize on first request.")
 
     yield
     print("Shutting down...")
@@ -69,6 +81,7 @@ app.mount("/downloads", StaticFiles(directory=str(PDF_OUTPUT_DIR)), name="downlo
 app.include_router(routes.router, prefix="/api", tags=["Planetary Health"])
 app.include_router(sensor_routes.router, prefix="/api", tags=["Sensor Data"])
 app.include_router(satellite_routes.router, prefix="/api", tags=["Satellite Imagery"])
+app.include_router(dashboard_routes.router, prefix="/api", tags=["Dashboard"])
 
 
 @app.get("/")
@@ -97,6 +110,17 @@ async def root():
                 "outdoor_all": "/api/sensors/outdoor/all",
                 "compare": "/api/sensors/compare",
                 "cache_status": "/api/sensors/cache/status"
+            },
+            "dashboard": {
+                "all": "/api/dashboard/all",
+                "realtime": "/api/dashboard/realtime",
+                "weather": "/api/dashboard/weather",
+                "aqi": "/api/dashboard/aqi",
+                "satellite": "/api/dashboard/satellite",
+                "weather_history": "/api/dashboard/weather/history",
+                "aqi_history": "/api/dashboard/aqi/history",
+                "satellite_history": "/api/dashboard/satellite/history",
+                "status": "/api/dashboard/status"
             }
         }
     }

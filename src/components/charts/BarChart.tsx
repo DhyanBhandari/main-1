@@ -16,6 +16,8 @@ interface BarChartProps {
   height?: number;
   title?: string;
   stacked?: boolean;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 const defaultColors = [
@@ -30,7 +32,9 @@ export const BarChart = ({
   datasets,
   height = 300,
   title,
-  stacked = false
+  stacked = false,
+  xAxisLabel,
+  yAxisLabel,
 }: BarChartProps) => {
   const data = {
     labels,
@@ -64,11 +68,29 @@ export const BarChart = ({
       x: {
         ...commonOptions.scales.x,
         stacked,
+        title: {
+          display: !!xAxisLabel,
+          text: xAxisLabel,
+          font: {
+            size: 12,
+            weight: 'bold' as const,
+          },
+          color: '#6b7280',
+        },
       },
       y: {
         ...commonOptions.scales.y,
         stacked,
         beginAtZero: true,
+        title: {
+          display: !!yAxisLabel,
+          text: yAxisLabel,
+          font: {
+            size: 12,
+            weight: 'bold' as const,
+          },
+          color: '#6b7280',
+        },
       },
     },
   };

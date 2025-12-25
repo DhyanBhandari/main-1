@@ -107,7 +107,7 @@ const CorporatesInvestors = () => {
           >
             <h3 className="text-2xl md:text-3xl font-bold mb-4">Key Differentiator</h3>
             <p className="text-xl opacity-90">
-              "Backed by real-time satellite verification, not just paperwork."
+              "Backed by real-time remote sensing verification, not just paperwork."
             </p>
           </motion.div>
         </div>

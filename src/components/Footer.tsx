@@ -1,101 +1,114 @@
-import { Link } from "react-router-dom";
 import logo from "@/assets/logo-new.png";
+import { Mail, MapPin } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Footer = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const navigateToSection = (sectionId: string) => {
+        // Check if we're on the home page
+        if (location.pathname === "/" || location.pathname === "/single") {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: "smooth" });
+            }
+        } else {
+            // Navigate to home page with hash
+            navigate(`/#${sectionId}`);
+        }
+    };
+
+    const goHome = () => {
+        if (location.pathname === "/" || location.pathname === "/single") {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            navigate("/");
+        }
+    };
+
     return (
-        <footer className="relative z-50 bg-white border-t border-gray-100 pt-16 pb-8">
-            <div className="container px-4 mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-16 mb-16">
+        <footer className="relative z-50 bg-[#0D2821] pt-16 pb-8">
+            <div className="container px-6 mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
                     {/* Brand Column */}
-                    <div className="lg:col-span-4 space-y-6">
-                        <Link to="/" className="block">
-                            <img src={logo} alt="ErthaLoka Logo" className="h-10 w-auto" />
-                        </Link>
-                        <p className="text-[#0D2821] leading-relaxed max-w-sm">
+                    <div className="space-y-4">
+                        <button onClick={goHome} className="block">
+                            <img src={logo} alt="ErthaLoka Logo" className="h-10 w-auto brightness-0 invert" />
+                        </button>
+                        <p className="text-gray-400 text-sm leading-relaxed">
                             The Operating System for the Natural Economy. Where Preservation is More Profitable Than Destruction.
                         </p>
-                        {/* <div className="flex items-center gap-4">
-                            {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
-                                <a
-                                    key={i}
-                                    href="#"
-                                    className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-green-50 hover:text-green-600 transition-all duration-300"
-                                >
-                                    <Icon className="w-5 h-5" />
-                                </a>
-                            ))}
-                        </div> */}
                     </div>
 
-                    {/* Links Columns */}
-                    <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-8">
-                        <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-[#0D2821] uppercase">For You</h3>
-                            <ul className="space-y-4">
-                                {[{ name: "Landowners", path: "/landowners" }, { name: "Corporates & Investors", path: "/corporates-investors" }, { name: "Financial Institutions", path: "/financial-institutions" }].map((item) => (
-                                    <li key={item.name}>
-                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
-                                            {item.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+                    {/* Quick Links */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold tracking-wider text-white uppercase">Quick Links</h3>
+                        <ul className="space-y-3">
+                            {[
+                                { name: "Technology", id: "technology" },
+                                { name: "Solutions", id: "solutions" },
+                                { name: "EPA Collectives", id: "epa-collectives" },
+                                { name: "About", id: "about" },
+                            ].map((item) => (
+                                <li key={item.name}>
+                                    <button
+                                        onClick={() => navigateToSection(item.id)}
+                                        className="text-gray-400 hover:text-green-400 transition-colors duration-200 text-sm"
+                                    >
+                                        {item.name}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
-                        <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Technology</h3>
-                            <ul className="space-y-4">
-                                {[{ name: "Trust Center", path: "/technology" }, { name: "PHI Framework", path: "/abcde-framework" }, { name: "EPA Registry", path: "/projects/current" }].map((item) => (
-                                    <li key={item.name}>
-                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
-                                            {item.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+                    {/* Solutions */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold tracking-wider text-white uppercase">Solutions</h3>
+                        <ul className="space-y-3">
+                            {["Corporates", "Banks & Financial Institutions", "Investors"].map((item) => (
+                                <li key={item}>
+                                    <button
+                                        onClick={() => navigateToSection("solutions")}
+                                        className="text-gray-400 hover:text-green-400 transition-colors duration-200 text-sm"
+                                    >
+                                        {item}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
-                        <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Process</h3>
-                            <ul className="space-y-4">
-                                {[{ name: "DMRV", path: "/measure" }, { name: "NCA", path: "/verify" }, { name: "Blockchain", path: "/blockchain" }].map((item) => (
-                                    <li key={item.name}>
-                                        <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
-                                            {item.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        <div className="space-y-6">
-                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase">Company</h3>
-                            <ul className="space-y-4">
-                                {[{ name: "About Us", path: "/about" }, { name: "Contact", path: "mailto:connect@erthaloka.com" }].map((item) => (
-                                    <li key={item.name}>
-                                        {item.path.startsWith("mailto:") ? (
-                                            <a href={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
-                                                {item.name}
-                                            </a>
-                                        ) : (
-                                            <Link to={item.path} className="text-gray-500 hover:text-green-600 transition-colors duration-200 block cursor-pointer">
-                                                {item.name}
-                                            </Link>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+                    {/* Contact */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold tracking-wider text-white uppercase">Contact</h3>
+                        <ul className="space-y-3">
+                            <li>
+                                <a
+                                    href="mailto:connect@erthaloka.com"
+                                    className="text-gray-400 hover:text-green-400 transition-colors duration-200 text-sm flex items-center gap-2"
+                                >
+                                    <Mail className="w-4 h-4" />
+                                    connect@erthaloka.com
+                                </a>
+                            </li>
+                            <li className="text-gray-400 text-sm flex items-start gap-2">
+                                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                <span>Bangalore, India</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
 
-                <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-sm text-gray-400">
+                {/* Bottom Bar */}
+                <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p className="text-sm text-gray-500">
                         © {new Date().getFullYear()} ErthaLoka. All rights reserved.
                     </p>
-                    <div className="flex items-center gap-8">
-                        <Link to="/privacy-policy" className="text-sm text-gray-400 hover:text-green-600 transition-colors cursor-pointer">Privacy Policy</Link>
-                        <Link to="/terms-of-service" className="text-sm text-gray-400 hover:text-green-600 transition-colors cursor-pointer">Terms of Service</Link>
+                    <div className="flex items-center gap-6">
+                        <a href="#" className="text-sm text-gray-500 hover:text-green-400 transition-colors">Privacy Policy</a>
+                        <a href="#" className="text-sm text-gray-500 hover:text-green-400 transition-colors">Terms of Service</a>
                     </div>
                 </div>
             </div>

@@ -6,8 +6,8 @@ from pathlib import Path
 # Base directory
 BASE_DIR = Path(__file__).parent.parent
 
-# Earth Engine settings
-EE_PROJECT_ID = os.environ.get("EE_PROJECT_ID", "vibrant-arcanum-477610-v0")
+# Earth Engine settings (no defaults - must be set via environment)
+EE_PROJECT_ID = os.environ.get("EE_PROJECT_ID")
 EE_SERVICE_ACCOUNT = os.environ.get("EE_SERVICE_ACCOUNT")
 EE_PRIVATE_KEY = os.environ.get("EE_PRIVATE_KEY")
 
@@ -15,10 +15,10 @@ EE_PRIVATE_KEY = os.environ.get("EE_PRIVATE_KEY")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
-# Firebase/Firestore settings
+# Firebase/Firestore settings (no defaults - must be set via environment)
 FIREBASE_SERVICE_ACCOUNT_PATH = os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH")
 FIREBASE_SERVICE_ACCOUNT_JSON = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
-FIREBASE_PROJECT_ID = os.environ.get("FIREBASE_PROJECT_ID", "erthaloka-5853f")
+FIREBASE_PROJECT_ID = os.environ.get("FIREBASE_PROJECT_ID")
 
 # Sensor data cache settings (in seconds)
 SENSOR_CACHE_TTL = int(os.environ.get("SENSOR_CACHE_TTL", 1800))  # 30 minutes default
@@ -36,3 +36,9 @@ SUPABASE_STORAGE_BUCKET = os.environ.get("SUPABASE_STORAGE_BUCKET", "phi-reports
 
 # API settings
 API_VERSION = "1.0.0"
+
+# Dashboard settings
+DASHBOARD_DB_PATH = BASE_DIR / "dashboard.db"
+DASHBOARD_REALTIME_CACHE_TTL = int(os.environ.get("DASHBOARD_REALTIME_CACHE_TTL", 60))  # 1 minute
+DASHBOARD_SATELLITE_CACHE_TTL = int(os.environ.get("DASHBOARD_SATELLITE_CACHE_TTL", 86400))  # 24 hours
+DASHBOARD_POLL_INTERVAL = int(os.environ.get("DASHBOARD_POLL_INTERVAL", 300))  # 5 minutes

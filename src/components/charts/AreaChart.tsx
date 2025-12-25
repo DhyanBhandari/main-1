@@ -41,6 +41,7 @@ interface AreaChartProps {
   datasets: AreaChartDataset[];
   height?: number;
   title?: string;
+  xAxisLabel?: string;
   yAxisLabel?: string;
   stacked?: boolean;
 }
@@ -50,6 +51,7 @@ export const AreaChart = ({
   datasets,
   height = 300,
   title,
+  xAxisLabel,
   yAxisLabel,
   stacked = false,
 }: AreaChartProps) => {
@@ -120,6 +122,15 @@ export const AreaChart = ({
           font: {
             size: 11,
           },
+        },
+        title: {
+          display: !!xAxisLabel,
+          text: xAxisLabel,
+          font: {
+            size: 12,
+            weight: 'bold' as const,
+          },
+          color: '#6b7280',
         },
       },
       y: {

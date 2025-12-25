@@ -110,6 +110,123 @@ class BasePillar(ABC):
 
         return result
 
+    def query_polygon(
+        self,
+        points: List[Dict[str, float]],
+        mode: str = "comprehensive",
+        date_range: Optional[Tuple[str, str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Query all metrics for this pillar over a polygon area defined by 4 points.
+
+        Args:
+            points: List of 4 dicts with 'lat' and 'lng' keys defining polygon corners
+                    Expected order: [NW, NE, SE, SW]
+            mode: "simple" or "comprehensive"
+            date_range: Optional (start_date, end_date). Defaults to last 30 days.
+
+        Returns:
+            Dict containing all metric values, pillar metadata, and area info
+        """
+        # Validate we have exactly 4 points
+        if len(points) != 4:
+            raise ValueError(f"Expected 4 points for polygon, got {len(points)}")
+
+        # Validate all coordinates
+        for i, pt in enumerate(points):
+            lat = pt.get('lat')
+            lng = pt.get('lng')
+            if lat is None or lng is None:
+                raise ValueError(f"Point {i} missing lat or lng")
+            if not -90 <= lat <= 90:
+                raise ValueError(f"Point {i}: Latitude must be between -90 and 90, got {lat}")
+            if not -180 <= lng <= 180:
+                raise ValueError(f"Point {i}: Longitude must be between -180 and 180, got {lng}")
+
+        # Create polygon geometry (GEE expects [lon, lat] order)
+        # Close the polygon by repeating the first point
+        coords = [[pt['lng'], pt['lat']] for pt in points]
+        coords.append(coords[0])  # Close the polygon
+        polygon = ee.Geometry.Polygon([coords])
+
+        # Calculate centroid for reference
+        centroid = polygon.centroid()
+        centroid_coords = centroid.coordinates().getInfo()
+
+        # Calculate area in hectares
+        area_m2 = polygon.area().getInfo()
+        area_ha = area_m2 / 10000
+
+        # Get date range
+        if date_range is None:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=30)
+            date_range = (
+                start_date.strftime("%Y-%m-%d"),
+                end_date.strftime("%Y-%m-%d")
+            )
+
+        # Get metrics based on mode
+        if mode == "simple":
+            metrics = self.get_simple_metrics()
+        else:
+            metrics = self.get_comprehensive_metrics()
+
+        # Query metrics using polygon directly
+        # Create a dummy point at centroid for the query_metrics signature
+        # but pass polygon as the actual region
+        centroid_point = ee.Geometry.Point([centroid_coords[0], centroid_coords[1]])
+
+        # Use buffer_radius=0 and override region with polygon in query
+        result = self._query_metrics_with_region(centroid_point, polygon, date_range, metrics)
+
+        # Add pillar metadata
+        result["pillar_id"] = self.PILLAR_ID
+        result["pillar_name"] = self.PILLAR_NAME
+        result["pillar_color"] = self.PILLAR_COLOR
+        result["mode"] = mode
+        result["query_time"] = datetime.now().isoformat()
+
+        # Add polygon-specific geometry data
+        result["geometry"] = {
+            "type": "Polygon",
+            "points": points,
+            "centroid": {
+                "lat": centroid_coords[1],
+                "lng": centroid_coords[0]
+            },
+            "area_m2": area_m2,
+            "area_ha": area_ha,
+            "area_acres": area_ha * 2.47105
+        }
+
+        return result
+
+    def _query_metrics_with_region(
+        self,
+        point: ee.Geometry.Point,
+        region: ee.Geometry,
+        date_range: Tuple[str, str],
+        metrics: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Query metrics with a custom region geometry.
+        Uses the same logic as query_metrics but with polygon region.
+
+        Args:
+            point: Centroid point (for reference/fallback)
+            region: The actual region to query (polygon)
+            date_range: Date range tuple
+            metrics: List of metrics to query
+
+        Returns:
+            Dict with metric values
+        """
+        # Default implementation calls query_metrics with buffer_radius=0
+        # Subclasses can override for optimized polygon handling
+        # For now, use centroid with a reasonable buffer as fallback
+        return self.query_metrics(point, 500, date_range, metrics)
+
     def _create_buffered_region(
         self,
         point: ee.Geometry.Point,

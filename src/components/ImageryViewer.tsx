@@ -29,7 +29,7 @@ const IMAGERY_CONFIG = {
     label: 'True Color',
     shortLabel: 'RGB',
     color: '#3b82f6',
-    description: 'Natural color satellite view'
+    description: 'Natural color imagery'
   },
   ndvi: {
     icon: TreePine,

@@ -17,7 +17,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.11"
       - key: EE_PROJECT_ID
-        value: vibrant-arcanum-477610-v0
+        sync: false
       - key: EE_SERVICE_ACCOUNT
         sync: false
       - key: EE_PRIVATE_KEY
@@ -25,6 +25,12 @@ services:
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_KEY
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: OPENAQ_API_KEY
         sync: false
       - key: CORS_ORIGINS
         value: "*"

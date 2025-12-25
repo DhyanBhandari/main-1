@@ -72,7 +72,7 @@ const Landowners = () => {
               {
                 icon: Shield,
                 title: "Continuous Monitoring",
-                description: "AI-powered satellite and IoT monitoring tracks your land's health and credit potential 24/7."
+                description: "AI-powered remote sensing and IoT monitoring tracks your land's health and credit potential 24/7."
               },
               {
                 icon: Users,
@@ -287,7 +287,7 @@ const Landowners = () => {
             {[
               {
                 title: "Monitoring Dashboard",
-                description: "Real-time satellite and IoT data visualization for all your project sites."
+                description: "Real-time remote sensing and IoT data visualization for all your project sites."
               },
               {
                 title: "Verification Engine",

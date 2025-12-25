@@ -1,23 +1,48 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, MapPin, Mail, Eye, EyeOff } from "lucide-react";
+import { X, Loader2, MapPin, Mail, Eye, EyeOff, Map, Target, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { checkAPIHealth } from "@/services/phiApi";
 import { useAuth } from "@/auth";
+import PolygonLandSelector from "./PolygonLandSelector";
 
 interface PHIModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+// View states for the modal
+type ModalView = "auth" | "menu" | "single-point" | "polygon";
+
 export const PHIModal = ({ isOpen, onClose }: PHIModalProps) => {
   const { user } = useAuth();
-  const [showAuth, setShowAuth] = useState(!user);
+  const [currentView, setCurrentView] = useState<ModalView>(!user ? "auth" : "menu");
 
-  // Update auth state when user changes
+  // Update view when user changes
   useEffect(() => {
-    setShowAuth(!user);
+    if (!user) {
+      setCurrentView("auth");
+    } else if (currentView === "auth") {
+      setCurrentView("menu");
+    }
   }, [user]);
+
+  // Reset to menu when modal opens (if authenticated)
+  useEffect(() => {
+    if (isOpen && user) {
+      setCurrentView("menu");
+    } else if (isOpen && !user) {
+      setCurrentView("auth");
+    }
+  }, [isOpen, user]);
+
+  const handleAuthSuccess = () => {
+    setCurrentView("menu");
+  };
+
+  const handleBack = () => {
+    setCurrentView("menu");
+  };
 
   return (
     <AnimatePresence>
@@ -39,7 +64,9 @@ export const PHIModal = ({ isOpen, onClose }: PHIModalProps) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
-              className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative"
+              className={`bg-white rounded-3xl shadow-2xl w-full max-h-[90vh] overflow-y-auto relative ${
+                currentView === "polygon" ? "max-w-3xl" : "max-w-md"
+              }`}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
@@ -50,12 +77,32 @@ export const PHIModal = ({ isOpen, onClose }: PHIModalProps) => {
                 <X className="w-6 h-6 text-gray-600" />
               </button>
 
+              {/* Back Button (only for single-point form, polygon has its own nav) */}
+              {currentView === "single-point" && (
+                <button
+                  onClick={handleBack}
+                  className="absolute top-4 left-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
+                >
+                  <ArrowLeft className="w-6 h-6 text-gray-600" />
+                </button>
+              )}
+
               {/* Conditional Content */}
-              <div className="p-4 sm:p-6 md:p-8">
-                {showAuth ? (
-                  <AuthFormContent onAuthSuccess={() => setShowAuth(false)} />
-                ) : (
+              <div className={currentView === "polygon" ? "p-2 sm:p-4" : "p-4 sm:p-6 md:p-8"}>
+                {currentView === "auth" && (
+                  <AuthFormContent onAuthSuccess={handleAuthSuccess} />
+                )}
+                {currentView === "menu" && (
+                  <PHIOptionsMenu
+                    onSelectSinglePoint={() => setCurrentView("single-point")}
+                    onSelectPolygon={() => setCurrentView("polygon")}
+                  />
+                )}
+                {currentView === "single-point" && (
                   <PHIReportFormContent onClose={onClose} />
+                )}
+                {currentView === "polygon" && (
+                  <PolygonInteractiveContent onClose={onClose} onBack={handleBack} />
                 )}
               </div>
             </motion.div>
@@ -63,6 +110,108 @@ export const PHIModal = ({ isOpen, onClose }: PHIModalProps) => {
         </>
       )}
     </AnimatePresence>
+  );
+};
+
+// Options Menu Component - Shown after authentication
+interface PHIOptionsMenuProps {
+  onSelectSinglePoint: () => void;
+  onSelectPolygon: () => void;
+}
+
+const PHIOptionsMenu = ({ onSelectSinglePoint, onSelectPolygon }: PHIOptionsMenuProps) => {
+  const { user } = useAuth();
+
+  return (
+    <div>
+      {/* User greeting */}
+      {user && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-800">
+            Welcome, <span className="font-semibold">{user.displayName || user.email}</span>
+          </p>
+        </div>
+      )}
+
+      <h2 className="text-2xl sm:text-3xl font-bold text-[#0d2821] mb-2">
+        Natural Capital Assessment
+      </h2>
+      <p className="text-gray-600 mb-6">
+        Choose your assessment type
+      </p>
+
+      <div className="space-y-4">
+        {/* Single Point Option */}
+        <motion.button
+          onClick={onSelectSinglePoint}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full p-5 border-2 border-gray-200 rounded-2xl hover:border-[#0d2821] hover:bg-gray-50 transition-all text-left group"
+        >
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-blue-100 rounded-xl group-hover:bg-blue-200 transition-colors">
+              <Target className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                Quick Assessment
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Single point analysis with 500m buffer zone
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                  PHI Score
+                </span>
+                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                  5 Pillars
+                </span>
+                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                  ~30 sec
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.button>
+
+        {/* Polygon Option */}
+        <motion.button
+          onClick={onSelectPolygon}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full p-5 border-2 border-gray-200 rounded-2xl hover:border-[#0d2821] hover:bg-gray-50 transition-all text-left group"
+        >
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-emerald-100 rounded-xl group-hover:bg-emerald-200 transition-colors">
+              <Map className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                Land Parcel Analysis
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Define your land with 4 corner coordinates
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+                  Exact Area
+                </span>
+                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+                  Carbon Credits
+                </span>
+                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+                  ESV Value
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.button>
+      </div>
+
+      <p className="text-xs text-gray-400 text-center mt-6">
+        In guidelines with UN-SEEA framework for environmental accounting
+      </p>
+    </div>
   );
 };
 
@@ -455,5 +604,40 @@ const PHIReportFormContent = ({ onClose }: PHIReportFormContentProps) => {
         </p>
       </form>
     </div>
+  );
+};
+
+// Interactive Polygon Selection Component - Uses satellite map for point selection
+interface PolygonInteractiveContentProps {
+  onClose: () => void;
+  onBack: () => void;
+}
+
+const PolygonInteractiveContent = ({ onClose, onBack }: PolygonInteractiveContentProps) => {
+  const navigate = useNavigate();
+
+  const handleComplete = (points: { lat: number; lng: number; label: string }[]) => {
+    // Calculate centroid from polygon points (required by GetTheReport.tsx)
+    const latitude = points.reduce((sum, p) => sum + p.lat, 0) / points.length;
+    const longitude = points.reduce((sum, p) => sum + p.lng, 0) / points.length;
+
+    // Navigate to report page with polygon data AND centroid coordinates
+    navigate("/getthereport", {
+      state: {
+        latitude,  // Centroid latitude - required by GetTheReport
+        longitude, // Centroid longitude - required by GetTheReport
+        isPolygon: true,
+        points: points.map((p) => ({
+          lat: p.lat,
+          lng: p.lng,
+          label: p.label,
+        })),
+      },
+    });
+    onClose();
+  };
+
+  return (
+    <PolygonLandSelector onComplete={handleComplete} onBack={onBack} />
   );
 };

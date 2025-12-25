@@ -15,6 +15,8 @@ interface LineChartProps {
   }[];
   height?: number;
   title?: string;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 const defaultColors = [
@@ -24,7 +26,7 @@ const defaultColors = [
   { border: chartColors.quaternary, bg: chartColors.quaternaryLight },
 ];
 
-export const LineChart = ({ labels, datasets, height = 300, title }: LineChartProps) => {
+export const LineChart = ({ labels, datasets, height = 300, title, xAxisLabel, yAxisLabel }: LineChartProps) => {
   const data = {
     labels,
     datasets: datasets.map((ds, index) => ({
@@ -53,6 +55,33 @@ export const LineChart = ({ labels, datasets, height = 300, title }: LineChartPr
           weight: 'bold' as const,
         },
         padding: { bottom: 20 },
+      },
+    },
+    scales: {
+      ...commonOptions.scales,
+      x: {
+        ...commonOptions.scales.x,
+        title: {
+          display: !!xAxisLabel,
+          text: xAxisLabel,
+          font: {
+            size: 12,
+            weight: 'bold' as const,
+          },
+          color: '#6b7280',
+        },
+      },
+      y: {
+        ...commonOptions.scales.y,
+        title: {
+          display: !!yAxisLabel,
+          text: yAxisLabel,
+          font: {
+            size: 12,
+            weight: 'bold' as const,
+          },
+          color: '#6b7280',
+        },
       },
     },
   };

@@ -20,7 +20,7 @@ const SUPPLEMENTATION_MAP: Record<string, {
     pillar: 'A',
     getValueFromExternal: (ext) => ext.air_quality?.primary_aqi ?? null,
     unit: 'US AQI',
-    description: 'Real-time Air Quality Index from Open-Meteo'
+    description: 'Real-time Air Quality Index'
   },
   uv_index: {
     pillar: 'A',

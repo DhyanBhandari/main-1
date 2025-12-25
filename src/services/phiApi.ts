@@ -46,6 +46,121 @@ export interface PHIQueryResponse extends PHIResponse {
 }
 
 /**
+ * Polygon point for land parcel queries
+ */
+export interface PolygonPoint {
+  lat: number;
+  lng: number;
+  label?: string;
+}
+
+/**
+ * Polygon query request
+ */
+export interface PolygonQueryRequest {
+  points: PolygonPoint[];
+  mode?: 'simple' | 'comprehensive';
+}
+
+/**
+ * Polygon PHI response with area and valuation data
+ */
+export interface PolygonPHIResponse extends PHIQueryResponse {
+  geometry?: {
+    type: string;
+    points: PolygonPoint[];
+    area_m2: number;
+    area_ha: number;
+    area_acres: number;
+  };
+  carbon_credits?: {
+    available: boolean;
+    carbon_stock_mg_c_ha: number;
+    total_carbon_mg: number;
+    co2_equivalent_tonnes: number;
+    verified_co2_tonnes: number;
+    estimated_value: {
+      low_usd: number;
+      mid_usd: number;
+      high_usd: number;
+    };
+    methodology: string;
+  };
+  ecosystem_service_value?: {
+    available: boolean;
+    ecosystem_type: string;
+    base_esv_per_ha_usd: number;
+    adjusted_esv_per_ha_usd: number;
+    total_annual_esv_usd: number;
+    area_ha: number;
+    methodology: string;
+  };
+}
+
+/**
+ * Fetch PHI report for a polygon area defined by 4 corner points
+ * @param request - Polygon query parameters (4 points)
+ * @param userId - Firebase user ID (optional, defaults to 'anonymous')
+ * @param userEmail - User email (optional)
+ * @returns PHI response with pillars, metrics, area, carbon credits, and ESV
+ */
+export const fetchPolygonPHIReport = async (
+  request: PolygonQueryRequest,
+  userId?: string,
+  userEmail?: string
+): Promise<PolygonPHIResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/query/polygon`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      points: request.points.map(p => ({
+        lat: p.lat,
+        lng: p.lng,
+        label: p.label || null,
+      })),
+      mode: request.mode || 'comprehensive',
+      include_scores: true,
+      user_id: userId || 'anonymous',
+      user_email: userEmail || null,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    let errorMessage = `API error: ${response.status}`;
+    if (errorData.detail) {
+      if (Array.isArray(errorData.detail)) {
+        errorMessage = errorData.detail
+          .map((err: { msg?: string; loc?: string[] }) => err.msg || JSON.stringify(err))
+          .join(', ');
+      } else if (typeof errorData.detail === 'string') {
+        errorMessage = errorData.detail;
+      }
+    }
+    throw new Error(errorMessage);
+  }
+
+  const rawData = await response.json();
+
+  // Use middleware to unwrap and validate response
+  const phiResponse = transformPHIResponse(rawData);
+
+  // Extract polygon-specific data from summary
+  const summary = rawData.data?.summary || rawData.summary || {};
+
+  return {
+    ...phiResponse,
+    query_id: rawData.query_id,
+    location_name: rawData.location_name,
+    geometry: summary.geometry,
+    carbon_credits: summary.carbon_credits,
+    ecosystem_service_value: summary.ecosystem_service_value,
+  };
+};
+
+/**
  * Fetch PHI report for a given location
  * @param request - Query parameters (latitude, longitude, mode, etc.)
  * @param userId - Firebase user ID (optional, defaults to 'anonymous')
@@ -221,7 +336,7 @@ export const getUserStats = async (userId: string): Promise<{
  * Get real-time air quality from external APIs
  * @param lat - Latitude
  * @param lon - Longitude
- * @returns Air quality data from Open-Meteo and OpenAQ
+ * @returns Air quality data
  */
 export const getRealTimeAirQuality = async (
   lat: number,
@@ -279,7 +394,7 @@ export const getWeatherForecast = async (
  * Get soil moisture and temperature data
  * @param lat - Latitude
  * @param lon - Longitude
- * @returns Soil data from Open-Meteo
+ * @returns Soil data
  */
 export const getSoilData = async (
   lat: number,

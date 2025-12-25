@@ -20,7 +20,7 @@ class OpenMeteoAPI(BaseExternalAPI):
     """Open-Meteo Air Quality API - No authentication required."""
 
     API_NAME = "open_meteo"
-    BASE_URL = "https://air-quality-api.open-meteo.com/v1/air_quality"
+    BASE_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
     REQUIRES_AUTH = False
     CACHE_TTL_SECONDS = 600  # 10 minutes - data updates hourly
     REQUEST_TIMEOUT = 10

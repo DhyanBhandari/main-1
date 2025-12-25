@@ -29,7 +29,7 @@ import html2canvas from "html2canvas";
 import { BarChart, RadarChart } from "@/components/charts";
 
 // Import API service and types
-import { fetchPHIReport, formatAPIError, getComprehensiveExternalData } from "@/services/phiApi";
+import { fetchPHIReport, fetchPolygonPHIReport, formatAPIError, getComprehensiveExternalData, PolygonPoint, PolygonPHIResponse } from "@/services/phiApi";
 import {
   PHIResponse,
   PILLAR_CONFIGS,
@@ -237,7 +237,7 @@ const normalizeValue = (value: number | null, metricName: string): number => {
 
 const GetTheReport = () => {
   const location = useLocation();
-  const { latitude, longitude } = location.state || { latitude: 0, longitude: 0 };
+  const { latitude, longitude, isPolygon, points } = location.state || { latitude: 0, longitude: 0, isPolygon: false, points: [] };
   const { scrollYProgress } = useScroll();
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -246,6 +246,9 @@ const GetTheReport = () => {
   const [error, setError] = useState<string | null>(null);
   const [phiData, setPhiData] = useState<PHIResponse | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  // Polygon-specific state
+  const [polygonData, setPolygonData] = useState<PolygonPHIResponse | null>(null);
 
   // External Data State (for metric supplementation)
   const [externalData, setExternalData] = useState<ComprehensiveExternalData | null>(null);
@@ -461,6 +464,26 @@ const GetTheReport = () => {
   // Fetch PHI data on mount
   useEffect(() => {
     const fetchData = async () => {
+      // For polygon mode, check if we have valid points
+      if (isPolygon && points && points.length === 4) {
+        try {
+          setLoading(true);
+          setError(null);
+          const data = await fetchPolygonPHIReport({
+            points: points as PolygonPoint[],
+            mode: 'comprehensive'
+          });
+          setPhiData(data);
+          setPolygonData(data);
+        } catch (err) {
+          setError(formatAPIError(err));
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // Single point mode
       if (!latitude || !longitude) {
         setError("Location coordinates are required");
         setLoading(false);
@@ -485,7 +508,7 @@ const GetTheReport = () => {
     };
 
     fetchData();
-  }, [latitude, longitude]);
+  }, [latitude, longitude, isPolygon, points]);
 
   // Fetch External data on mount (for metric supplementation into pillars)
   useEffect(() => {
@@ -585,9 +608,14 @@ const GetTheReport = () => {
         <section className="pt-32 pb-16 bg-gradient-to-b from-[#0d2821] to-[#065f46] min-h-screen flex items-center justify-center">
           <div className="text-center text-white">
             <Loader2 className="w-16 h-16 animate-spin mx-auto mb-6" />
-            <h2 className="text-2xl font-bold mb-2">Analyzing Remote Sensing Data</h2>
+            <h2 className="text-2xl font-bold mb-2">
+              {isPolygon ? 'Analyzing Land Parcel' : 'Analyzing Remote Sensing Data'}
+            </h2>
             <p className="text-green-100">
-              Analyzing location: {latitude?.toFixed(4)}°, {longitude?.toFixed(4)}°
+              {isPolygon
+                ? `Analyzing polygon with ${points?.length || 0} corner points`
+                : `Analyzing location: ${latitude?.toFixed(4)}°, ${longitude?.toFixed(4)}°`
+              }
             </p>
             <p className="text-green-200 text-sm mt-4">
               This may take 25-35 seconds...
@@ -637,10 +665,10 @@ const GetTheReport = () => {
             className="text-center text-white"
           >
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
-              Planetary Health Report
+              {isPolygon ? 'Land Parcel Analysis' : 'Planetary Health Report'}
             </h1>
             <p className="text-lg sm:text-xl text-green-100 mb-4">
-              Remote Sensing Data Analysis
+              {isPolygon ? 'Polygon Area Assessment' : 'Remote Sensing Data Analysis'}
             </p>
 
             {/* Location Badge */}
@@ -652,9 +680,31 @@ const GetTheReport = () => {
             >
               <MapPin className="w-5 h-5 text-green-300" />
               <span className="text-lg font-medium">
-                {latitude?.toFixed(4)}°, {longitude?.toFixed(4)}°
+                {isPolygon && polygonData?.geometry
+                  ? `${polygonData.geometry.area_ha?.toFixed(2)} hectares`
+                  : `${latitude?.toFixed(4)}°, ${longitude?.toFixed(4)}°`
+                }
               </span>
             </motion.div>
+
+            {/* Polygon Area Info */}
+            {isPolygon && polygonData?.geometry && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mt-4 flex flex-wrap justify-center gap-3"
+              >
+                <div className="px-4 py-2 bg-white/10 rounded-full text-sm">
+                  <span className="text-green-300">Area:</span>{' '}
+                  {polygonData.geometry.area_ha?.toFixed(2)} ha ({polygonData.geometry.area_acres?.toFixed(2)} acres)
+                </div>
+                <div className="px-4 py-2 bg-white/10 rounded-full text-sm">
+                  <span className="text-green-300">Centroid:</span>{' '}
+                  {latitude?.toFixed(4)}°, {longitude?.toFixed(4)}°
+                </div>
+              </motion.div>
+            )}
 
             {/* Data info */}
             {phiData?.summary && (
@@ -704,6 +754,130 @@ const GetTheReport = () => {
                 phiScore={phiData.summary.overall_score || 0}
                 ecosystemType={phiData.summary.ecosystem_type}
               />
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* Polygon Carbon Credits & ESV Section */}
+      {isPolygon && polygonData && (polygonData.carbon_credits?.available || polygonData.ecosystem_service_value?.available) && (
+        <section className="py-12 bg-gradient-to-b from-[#065f46] to-[#065f46]">
+          <div className="container px-4 mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <h2 className="text-2xl sm:text-3xl font-bold text-center text-white mb-8">
+                Land Parcel Valuation
+              </h2>
+
+              <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                {/* Carbon Credits Card */}
+                {polygonData.carbon_credits?.available && (
+                  <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-3 bg-emerald-500/20 rounded-xl">
+                        <TreePine className="w-6 h-6 text-emerald-300" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white">Carbon Credits</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-2 border-b border-white/10">
+                        <span className="text-green-100">Carbon Stock</span>
+                        <span className="text-white font-semibold">
+                          {polygonData.carbon_credits.carbon_stock_mg_c_ha?.toFixed(1)} Mg C/ha
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-white/10">
+                        <span className="text-green-100">Total Carbon</span>
+                        <span className="text-white font-semibold">
+                          {polygonData.carbon_credits.total_carbon_mg?.toFixed(1)} Mg C
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-white/10">
+                        <span className="text-green-100">CO₂ Equivalent</span>
+                        <span className="text-white font-semibold">
+                          {polygonData.carbon_credits.co2_equivalent_tonnes?.toFixed(1)} tonnes
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-white/10">
+                        <span className="text-green-100">Verified Credits</span>
+                        <span className="text-emerald-300 font-bold">
+                          {polygonData.carbon_credits.verified_co2_tonnes?.toFixed(1)} tonnes CO₂
+                        </span>
+                      </div>
+
+                      <div className="bg-emerald-500/20 rounded-xl p-4 mt-4">
+                        <p className="text-sm text-green-100 mb-2">Estimated Market Value</p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-emerald-300 font-bold text-2xl">
+                            ${polygonData.carbon_credits.estimated_value?.mid_usd?.toLocaleString()}
+                          </span>
+                          <span className="text-xs text-green-200">
+                            (${polygonData.carbon_credits.estimated_value?.low_usd?.toLocaleString()} - ${polygonData.carbon_credits.estimated_value?.high_usd?.toLocaleString()})
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-green-200 mt-2">
+                        Methodology: {polygonData.carbon_credits.methodology}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Ecosystem Service Value Card */}
+                {polygonData.ecosystem_service_value?.available && (
+                  <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-3 bg-blue-500/20 rounded-xl">
+                        <GlobeIcon className="w-6 h-6 text-blue-300" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white">Ecosystem Service Value</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-2 border-b border-white/10">
+                        <span className="text-green-100">Ecosystem Type</span>
+                        <span className="text-white font-semibold capitalize">
+                          {polygonData.ecosystem_service_value.ecosystem_type?.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-white/10">
+                        <span className="text-green-100">Base ESV</span>
+                        <span className="text-white font-semibold">
+                          ${polygonData.ecosystem_service_value.base_esv_per_ha_usd?.toLocaleString()}/ha/year
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-white/10">
+                        <span className="text-green-100">PHI-Adjusted ESV</span>
+                        <span className="text-white font-semibold">
+                          ${polygonData.ecosystem_service_value.adjusted_esv_per_ha_usd?.toLocaleString()}/ha/year
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-white/10">
+                        <span className="text-green-100">Total Area</span>
+                        <span className="text-white font-semibold">
+                          {polygonData.ecosystem_service_value.area_ha?.toFixed(2)} ha
+                        </span>
+                      </div>
+
+                      <div className="bg-blue-500/20 rounded-xl p-4 mt-4">
+                        <p className="text-sm text-green-100 mb-2">Total Annual ESV</p>
+                        <span className="text-blue-300 font-bold text-2xl">
+                          ${polygonData.ecosystem_service_value.total_annual_esv_usd?.toLocaleString()}/year
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-green-200 mt-2">
+                        Methodology: {polygonData.ecosystem_service_value.methodology}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
         </section>
@@ -760,7 +934,7 @@ const GetTheReport = () => {
               Earth Observation Imagery
             </h2>
             <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-              Visual analysis from multispectral, thermal, and LiDAR data sources
+              Visual analysis from multispectral, thermal, and LiDAR remote sensing
             </p>
           </motion.div>
 

@@ -392,9 +392,9 @@ const WeatherPanel: React.FC<WeatherPanelProps> = ({ weather, soil, loading, err
       {/* Atmospheric Details */}
       <AtmosphericDetailsCard hourly={weather.hourly} daily={weather.daily} />
 
-      {/* Data Source Info */}
+      {/* Last Updated Info */}
       <div className="text-center text-xs text-gray-400 py-2">
-        Data provided by Open-Meteo Weather API | Updated: {weather.current?.time ? formatTime(weather.current.time) : 'N/A'}
+        Last updated: {weather.current?.time ? formatTime(weather.current.time) : 'N/A'}
         {weather.cached && <span className="ml-2 text-green-500">(cached)</span>}
       </div>
     </motion.div>

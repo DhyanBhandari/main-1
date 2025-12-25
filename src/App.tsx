@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
 import ScrollToTop from "@/components/ScrollToTop";
 import HomePage from "@/pages/HomePage";
+import SinglePage from "@/pages/SinglePage";
 import Measure from "@/pages/Measure";
 import Verify from "@/pages/Verify";
 import ABCDEFramework from "@/pages/ABCDEFramework";
@@ -25,6 +26,7 @@ import Landowners from "@/pages/Landowners";
 import CorporatesInvestors from "@/pages/CorporatesInvestors";
 import FinancialInstitutions from "@/pages/FinancialInstitutions";
 import Blockchain from "@/pages/Blockchain";
+import Dashboard from "@/pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +35,7 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
+        <Route path="/" element={<PageTransition><SinglePage /></PageTransition>} />
 
         {/* New audience-centric routes */}
         <Route path="/landowners" element={<PageTransition><Landowners /></PageTransition>} />
@@ -44,6 +46,7 @@ const AnimatedRoutes = () => {
         <Route path="/measure" element={<PageTransition><Measure /></PageTransition>} />
         <Route path="/verify" element={<PageTransition><Verify /></PageTransition>} />
         <Route path="/blockchain" element={<PageTransition><Blockchain /></PageTransition>} />
+        <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
         <Route path="/abcde-framework" element={<PageTransition><ABCDEFramework /></PageTransition>} />
         <Route path="/technology" element={<PageTransition><Technology /></PageTransition>} />
         <Route path="/projects/current" element={<PageTransition><CurrentProjects /></PageTransition>} />

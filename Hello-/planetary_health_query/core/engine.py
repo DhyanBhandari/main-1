@@ -165,6 +165,404 @@ class GEEQueryEngine:
 
         return result
 
+    def query_polygon(
+        self,
+        points: List[Dict[str, float]],
+        mode: str = "comprehensive",
+        include_scores: bool = True,
+        include_raw: bool = True,
+        temporal: str = "latest",
+        date_range: Optional[Tuple[str, str]] = None,
+        pillars: Optional[List[str]] = None,
+        parallel: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Query all planetary health pillars for a polygon area defined by 4 points.
+
+        Args:
+            points: List of 4 dicts with 'lat' and 'lng' keys defining polygon corners
+                    Expected order: [NW, NE, SE, SW]
+            mode: "simple" (10 metrics) or "comprehensive" (24 metrics)
+            include_scores: Include calculated pillar scores (0-100)
+            include_raw: Include raw satellite values
+            temporal: "latest", "monthly", or "annual"
+            date_range: Optional (start_date, end_date) in YYYY-MM-DD format
+            pillars: List of pillars to query (e.g., ["A", "B"]). None = all.
+            parallel: If True, query pillars in parallel
+
+        Returns:
+            Dict containing all pillar results, summary, area info, carbon credits, and ESV
+        """
+        if not self._initialized:
+            self.initialize()
+
+        # Validate we have exactly 4 points
+        if len(points) != 4:
+            raise ValueError(f"Expected 4 points for polygon, got {len(points)}")
+
+        # Validate all point coordinates
+        for i, pt in enumerate(points):
+            lat = pt.get('lat')
+            lng = pt.get('lng')
+            if lat is None or lng is None:
+                raise ValueError(f"Point {i} missing lat or lng")
+            if not -90 <= lat <= 90:
+                raise ValueError(f"Point {i}: Latitude must be between -90 and 90, got {lat}")
+            if not -180 <= lng <= 180:
+                raise ValueError(f"Point {i}: Longitude must be between -180 and 180, got {lng}")
+
+        # Validate mode and temporal
+        if mode not in ["simple", "comprehensive"]:
+            raise ValueError(f"Mode must be 'simple' or 'comprehensive', got {mode}")
+        if temporal not in ["latest", "monthly", "annual"]:
+            raise ValueError(f"Temporal must be 'latest', 'monthly', or 'annual', got {temporal}")
+
+        # Set date range based on temporal mode
+        if date_range is None:
+            date_range = self._get_date_range(temporal)
+
+        # Determine which pillars to query
+        pillar_ids = pillars or list(self._pillars.keys())
+
+        # Calculate centroid for reference
+        lats = [pt['lat'] for pt in points]
+        lngs = [pt['lng'] for pt in points]
+        centroid_lat = sum(lats) / 4
+        centroid_lng = sum(lngs) / 4
+
+        # Build query result
+        result = {
+            "query": {
+                "type": "polygon",
+                "points": points,
+                "centroid": {
+                    "latitude": centroid_lat,
+                    "longitude": centroid_lng
+                },
+                "timestamp": datetime.now().isoformat(),
+                "mode": mode,
+                "temporal": temporal,
+                "date_range": {
+                    "start": date_range[0],
+                    "end": date_range[1]
+                }
+            },
+            "pillars": {}
+        }
+
+        # Query each pillar using polygon method
+        if parallel:
+            result["pillars"] = self._query_polygon_parallel(
+                points, mode, date_range, pillar_ids
+            )
+        else:
+            result["pillars"] = self._query_polygon_sequential(
+                points, mode, date_range, pillar_ids
+            )
+
+        # Add scores if requested
+        if include_scores:
+            result = self._add_scores(result)
+
+        # Remove raw values if not requested
+        if not include_raw:
+            result = self._remove_raw_values(result)
+
+        # Add summary with polygon-specific data
+        result["summary"] = self._create_polygon_summary(result, points)
+
+        # Add time series info
+        result["time_series"] = {
+            "enabled": temporal != "latest",
+            "mode": temporal
+        }
+
+        return result
+
+    def _query_polygon_parallel(
+        self,
+        points: List[Dict[str, float]],
+        mode: str,
+        date_range: Tuple[str, str],
+        pillar_ids: List[str]
+    ) -> Dict[str, Any]:
+        """Query pillars for polygon in parallel."""
+        results = {}
+
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {
+                executor.submit(
+                    self._pillars[pid].query_polygon,
+                    points, mode, date_range
+                ): pid
+                for pid in pillar_ids
+            }
+
+            for future in as_completed(futures):
+                pillar_id = futures[future]
+                try:
+                    pillar_result = future.result()
+                    pillar_key = f"{pillar_id}_{PILLAR_CONFIG[pillar_id]['name'].lower()}"
+                    results[pillar_key] = pillar_result
+                except Exception as e:
+                    pillar_key = f"{pillar_id}_{PILLAR_CONFIG[pillar_id]['name'].lower()}"
+                    results[pillar_key] = {
+                        "error": str(e),
+                        "metrics": {}
+                    }
+
+        return results
+
+    def _query_polygon_sequential(
+        self,
+        points: List[Dict[str, float]],
+        mode: str,
+        date_range: Tuple[str, str],
+        pillar_ids: List[str]
+    ) -> Dict[str, Any]:
+        """Query pillars for polygon sequentially."""
+        results = {}
+
+        for pillar_id in pillar_ids:
+            try:
+                pillar_result = self._pillars[pillar_id].query_polygon(
+                    points=points,
+                    mode=mode,
+                    date_range=date_range
+                )
+                pillar_key = f"{pillar_id}_{PILLAR_CONFIG[pillar_id]['name'].lower()}"
+                results[pillar_key] = pillar_result
+            except Exception as e:
+                pillar_key = f"{pillar_id}_{PILLAR_CONFIG[pillar_id]['name'].lower()}"
+                results[pillar_key] = {
+                    "error": str(e),
+                    "metrics": {}
+                }
+
+        return results
+
+    def _create_polygon_summary(self, result: Dict, points: List[Dict[str, float]]) -> Dict:
+        """
+        Create summary statistics for polygon query with carbon credits and ESV.
+        """
+        # Get base summary from existing method
+        base_summary = self._create_summary(result)
+
+        # Extract geometry info from first pillar that has it
+        area_ha = None
+        area_m2 = None
+        geometry_info = None
+
+        for pillar_data in result["pillars"].values():
+            if "geometry" in pillar_data:
+                geometry_info = pillar_data["geometry"]
+                area_ha = geometry_info.get("area_ha")
+                area_m2 = geometry_info.get("area_m2")
+                break
+
+        # If no geometry found, calculate approximate area using Haversine formula
+        if area_ha is None:
+            area_ha = self._calculate_polygon_area_approx(points)
+            area_m2 = area_ha * 10000
+
+        # Extract biomass and carbon data from Carbon pillar
+        biomass = None
+        tree_cover = None
+        carbon_stock = None
+
+        for pillar_key, pillar_data in result["pillars"].items():
+            if pillar_key.startswith("C_"):
+                metrics = pillar_data.get("metrics", {})
+                if "biomass" in metrics:
+                    biomass_data = metrics["biomass"]
+                    biomass = biomass_data.get("value") if isinstance(biomass_data, dict) else biomass_data
+                if "tree_cover" in metrics:
+                    tc_data = metrics["tree_cover"]
+                    tree_cover = tc_data.get("value") if isinstance(tc_data, dict) else tc_data
+                if "carbon_stock" in metrics:
+                    cs_data = metrics["carbon_stock"]
+                    carbon_stock = cs_data.get("value") if isinstance(cs_data, dict) else cs_data
+
+        # Calculate carbon credits
+        carbon_credits = self._calculate_carbon_credits(
+            biomass=biomass,
+            carbon_stock=carbon_stock,
+            tree_cover=tree_cover,
+            area_ha=area_ha,
+            dqs=base_summary.get("data_quality_score", 70)
+        )
+
+        # Calculate ESV (Ecosystem Service Value)
+        esv = self._calculate_esv(
+            phi_score=base_summary.get("overall_score"),
+            ecosystem_type=base_summary.get("ecosystem_type", "default"),
+            area_ha=area_ha
+        )
+
+        # Add polygon-specific data to summary
+        base_summary["geometry"] = {
+            "type": "Polygon",
+            "points": points,
+            "area_m2": area_m2,
+            "area_ha": area_ha,
+            "area_acres": area_ha * 2.47105 if area_ha else None
+        }
+        base_summary["carbon_credits"] = carbon_credits
+        base_summary["ecosystem_service_value"] = esv
+
+        return base_summary
+
+    def _calculate_polygon_area_approx(self, points: List[Dict[str, float]]) -> float:
+        """
+        Calculate approximate area of polygon in hectares using Shoelace formula.
+        Approximation using lat/lng as planar coordinates (works for small areas).
+        """
+        import math
+
+        # Convert to list of (lat, lng) tuples
+        coords = [(pt['lat'], pt['lng']) for pt in points]
+
+        # Shoelace formula for polygon area
+        n = len(coords)
+        area = 0.0
+        for i in range(n):
+            j = (i + 1) % n
+            area += coords[i][1] * coords[j][0]
+            area -= coords[j][1] * coords[i][0]
+        area = abs(area) / 2.0
+
+        # Convert from degrees^2 to hectares (approximate)
+        # 1 degree ≈ 111.32 km at equator
+        avg_lat = sum(c[0] for c in coords) / n
+        lat_km = 111.32  # km per degree latitude
+        lng_km = 111.32 * math.cos(math.radians(avg_lat))  # km per degree longitude
+
+        area_km2 = area * lat_km * lng_km
+        area_ha = area_km2 * 100  # 1 km² = 100 ha
+
+        return area_ha
+
+    def _calculate_carbon_credits(
+        self,
+        biomass: Optional[float],
+        carbon_stock: Optional[float],
+        tree_cover: Optional[float],
+        area_ha: float,
+        dqs: float
+    ) -> Dict[str, Any]:
+        """
+        Calculate carbon credits based on biomass, carbon stock, and area.
+
+        Returns:
+            Dict with carbon credit calculations
+        """
+        if area_ha is None or area_ha <= 0:
+            return {"error": "Area not available for carbon calculation"}
+
+        # Use carbon_stock if available, otherwise estimate from biomass
+        if carbon_stock is not None:
+            carbon_mg_c_ha = carbon_stock
+        elif biomass is not None:
+            # Carbon is approximately 50% of above-ground biomass
+            carbon_mg_c_ha = biomass * 0.5
+        elif tree_cover is not None and tree_cover > 0:
+            # Rough estimate: assume 2 Mg C/ha per 1% tree cover (very rough)
+            carbon_mg_c_ha = tree_cover * 2
+        else:
+            return {
+                "available": False,
+                "reason": "Insufficient data for carbon calculation"
+            }
+
+        # Total carbon in the polygon (Mg C)
+        total_carbon_mg = carbon_mg_c_ha * area_ha
+
+        # Convert to CO2 equivalent (1 C = 3.67 CO2)
+        co2_equivalent_tonnes = total_carbon_mg * 3.67
+
+        # Apply data quality factor
+        confidence_factor = min(dqs / 100, 1.0) if dqs else 0.7
+        verified_co2_tonnes = co2_equivalent_tonnes * confidence_factor
+
+        # Market value estimates (using range of carbon prices)
+        price_low = 15  # $/tonne CO2
+        price_mid = 25  # $/tonne CO2
+        price_high = 50  # $/tonne CO2
+
+        return {
+            "available": True,
+            "carbon_stock_mg_c_ha": round(carbon_mg_c_ha, 2),
+            "total_carbon_mg": round(total_carbon_mg, 2),
+            "co2_equivalent_tonnes": round(co2_equivalent_tonnes, 2),
+            "verified_co2_tonnes": round(verified_co2_tonnes, 2),
+            "confidence_factor": round(confidence_factor, 2),
+            "estimated_value": {
+                "low_usd": round(verified_co2_tonnes * price_low, 2),
+                "mid_usd": round(verified_co2_tonnes * price_mid, 2),
+                "high_usd": round(verified_co2_tonnes * price_high, 2),
+                "price_range": f"${price_low}-${price_high}/tonne CO2"
+            },
+            "methodology": "IPCC Tier 1 (biomass × 0.5 × 3.67)"
+        }
+
+    def _calculate_esv(
+        self,
+        phi_score: Optional[float],
+        ecosystem_type: str,
+        area_ha: float
+    ) -> Dict[str, Any]:
+        """
+        Calculate Ecosystem Service Value (ESV) based on PHI score and area.
+
+        Returns:
+            Dict with ESV calculations
+        """
+        if area_ha is None or area_ha <= 0:
+            return {"error": "Area not available for ESV calculation"}
+
+        # Base ESV values by ecosystem type ($/ha/year)
+        # Based on Costanza et al. and de Groot et al. estimates
+        BASE_ESV = {
+            "tropical_forest": 5382,
+            "mangrove": 9990,
+            "wetland": 25682,
+            "grassland_savanna": 2871,
+            "agricultural": 1532,
+            "urban_green": 3212,
+            "default": 3000
+        }
+
+        base_esv_per_ha = BASE_ESV.get(ecosystem_type, BASE_ESV["default"])
+
+        # Calculate PHI multiplier
+        if phi_score is not None:
+            esv_multiplier = calculate_phi_esv_multiplier(phi_score)
+        else:
+            esv_multiplier = 0
+
+        # Adjusted ESV
+        adjusted_esv_per_ha = base_esv_per_ha * (1 + esv_multiplier)
+        total_annual_esv = adjusted_esv_per_ha * area_ha
+
+        # Calculate 10-year and 30-year projections (with 2% annual appreciation)
+        esv_10yr = sum(total_annual_esv * (1.02 ** i) for i in range(10))
+        esv_30yr = sum(total_annual_esv * (1.02 ** i) for i in range(30))
+
+        return {
+            "available": True,
+            "ecosystem_type": ecosystem_type,
+            "base_esv_per_ha_usd": round(base_esv_per_ha, 2),
+            "phi_multiplier": round(esv_multiplier, 4),
+            "adjusted_esv_per_ha_usd": round(adjusted_esv_per_ha, 2),
+            "total_annual_esv_usd": round(total_annual_esv, 2),
+            "projections": {
+                "10_year_usd": round(esv_10yr, 2),
+                "30_year_usd": round(esv_30yr, 2)
+            },
+            "area_ha": round(area_ha, 2),
+            "methodology": "Costanza et al. (2014) + PHI adjustment"
+        }
+
     def query_single_pillar(
         self,
         lat: float,
