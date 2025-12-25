@@ -21,7 +21,7 @@ import {
   Eye, Globe, Layers, Image, ChevronRight, BarChart3,
   TrendingUp, TrendingDown, Minus, Factory, Home,
   CircleDot, Target, Shrub, Droplet, ArrowUp, ArrowDown,
-  Database
+  Database, Menu, X
 } from "lucide-react";
 import {
   LineChart, Line, AreaChart, Area, BarChart, Bar,
@@ -124,6 +124,7 @@ const Dashboard = () => {
   const [activePillar, setActivePillar] = useState<string>("overview");
   const [dataSource, setDataSource] = useState<'stored' | 'live'>('stored');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Data states - start empty, populated from API
   const [weather, setWeather] = useState<any>(null);
@@ -618,16 +619,125 @@ const Dashboard = () => {
       <div className="relative z-10">
 
         {/* Fixed Top Header with Logo */}
-        <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-gray-200 z-30 flex items-center px-6">
-          <button onClick={() => navigate("/")} className="mr-4">
-            <img src={logo} alt="ErthaLoka" className="h-8 w-auto" />
-          </button>
+        <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-gray-200 z-30 flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-3">
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <BarChart3 className="w-5 h-5" />}
+            </button>
+            <button onClick={() => navigate("/")} className="flex items-center">
+              <img src={logo} alt="ErthaLoka" className="h-7 md:h-8 w-auto" />
+            </button>
+          </div>
+          {/* Mobile PHI Score */}
+          <div className="lg:hidden flex items-center gap-2">
+            <div className="text-right">
+              <div className="text-xs text-gray-500">PHI Score</div>
+              <div className="text-lg font-bold text-[#0D2821]">{satellite?.overall_score?.toFixed(0) || "—"}</div>
+            </div>
+          </div>
         </header>
 
-        {/* Main Layout */}
-        <div className="flex pt-20">
+        {/* Mobile Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              {/* Drawer */}
+              <motion.div
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="lg:hidden fixed top-16 left-0 bottom-0 w-72 bg-white z-50 overflow-y-auto shadow-xl"
+              >
+                <div className="p-4">
+                  {/* PHI Score Card */}
+                  <div className="bg-gradient-to-br from-[#0D2821] to-[#1a4a3d] rounded-2xl p-4 text-white mb-4">
+                    <div className="text-xs opacity-70 mb-1">Planetary Health Index</div>
+                    <div className="flex items-end gap-2">
+                      <span className="text-3xl font-bold">{satellite?.overall_score?.toFixed(1) || "—"}</span>
+                      <span className="text-sm mb-1 opacity-70">/100</span>
+                    </div>
+                    <div className="text-xs opacity-70 mt-1 capitalize">{satellite?.overall_interpretation || "Loading..."}</div>
+                    <div className="mt-2 h-2 bg-white/20 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${satellite?.overall_score || 0}%` }}
+                        className="h-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-full"
+                      />
+                    </div>
+                  </div>
 
-          {/* LEFT SIDEBAR - Fixed Navigation */}
+                  {/* Navigation */}
+                  <nav className="space-y-1">
+                    <button
+                      onClick={() => { scrollToSection("overview"); setMobileMenuOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left ${activePillar === "overview" ? "bg-[#0D2821] text-white" : "hover:bg-gray-100"}`}
+                    >
+                      <BarChart3 className="w-5 h-5" />
+                      <span className="font-medium">Overview</span>
+                    </button>
+                    <button
+                      onClick={() => { scrollToSection("live"); setMobileMenuOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left ${activePillar === "live" ? "bg-[#0D2821] text-white" : "hover:bg-gray-100"}`}
+                    >
+                      <Activity className="w-5 h-5" />
+                      <span className="font-medium">Live Data</span>
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    </button>
+                    <button
+                      onClick={() => { scrollToSection("imagery"); setMobileMenuOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left ${activePillar === "imagery" ? "bg-[#0D2821] text-white" : "hover:bg-gray-100"}`}
+                    >
+                      <Globe className="w-5 h-5" />
+                      <span className="font-medium">Remote Sensing</span>
+                    </button>
+
+                    <div className="h-px bg-gray-200 my-3" />
+                    <div className="text-xs text-gray-500 px-3 py-1 uppercase tracking-wider font-semibold">Pillars</div>
+
+                    {Object.entries(PILLAR_CONFIG).map(([key, config]) => {
+                      const Icon = config.icon;
+                      const score = satellite?.pillar_scores?.[key] || 0;
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => { scrollToSection(key); setMobileMenuOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left ${activePillar === key ? "bg-[#0D2821] text-white" : "hover:bg-gray-100"}`}
+                        >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: config.color + "20" }}>
+                            <Icon className="w-4 h-4" style={{ color: config.color }} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{config.name}</div>
+                            <div className="text-xs opacity-70">{score.toFixed(0)}/100</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Main Layout */}
+        <div className="flex pt-16">
+
+          {/* LEFT SIDEBAR - Fixed Navigation (Desktop only) */}
           <motion.aside
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -865,7 +975,7 @@ const Dashboard = () => {
           </motion.aside>
 
           {/* MAIN CONTENT */}
-          <main className="flex-1 lg:ml-72 p-4 md:p-6">
+          <main className="flex-1 lg:ml-72 p-3 sm:p-4 md:p-6">
             <div className="max-w-6xl mx-auto">
 
               {/* Header */}
@@ -957,7 +1067,7 @@ const Dashboard = () => {
                       className="space-y-4"
                     >
                       {/* Pillar Score Cards */}
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
                         {Object.entries(PILLAR_CONFIG).map(([key, config], index) => {
                           const Icon = config.icon;
                           const score = satellite?.pillar_scores?.[key] || 0;
@@ -999,7 +1109,7 @@ const Dashboard = () => {
                       </div>
 
                       {/* Overview Charts */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {/* Radar Chart */}
                         <div className="bg-white rounded-xl border border-gray-200 p-4">
                           <h3 className="text-sm font-semibold text-gray-700 mb-3">Pillar Performance Radar</h3>
@@ -1092,7 +1202,7 @@ const Dashboard = () => {
                         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Real-time • Updates every 5 min</span>
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         {/* Weather Card with Graph */}
                         <motion.div
                           initial={{ opacity: 0, x: -20 }}
@@ -1119,8 +1229,8 @@ const Dashboard = () => {
                           </div>
 
                           {weather && (
-                            <div className="p-4">
-                              <div className="grid grid-cols-4 gap-3 mb-4">
+                            <div className="p-3 sm:p-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4">
                                 <div className="text-center p-2 bg-blue-50 rounded-lg">
                                   <Droplets className="w-4 h-4 mx-auto text-blue-500 mb-1" />
                                   <div className="text-lg font-bold text-gray-900">{weather.humidity}%</div>
@@ -1196,8 +1306,8 @@ const Dashboard = () => {
                           </div>
 
                           {aqi && (
-                            <div className="p-4">
-                              <div className="grid grid-cols-3 gap-2 mb-4">
+                            <div className="p-3 sm:p-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
                                 <div className="text-center p-2 bg-gray-50 rounded-lg">
                                   <div className="text-sm font-bold text-gray-900">{aqi.pm25.toFixed(1)}</div>
                                   <div className="text-xs text-gray-500">PM2.5 μg/m³</div>
