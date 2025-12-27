@@ -636,10 +636,10 @@ const Dashboard = () => {
               <img src={logo} alt="ErthaLoka" className="h-7 md:h-8 w-auto" />
             </button>
           </div>
-          {/* Mobile PHI Score */}
+          {/* Mobile PPA Score */}
           <div className="lg:hidden flex items-center gap-2">
             <div className="text-right">
-              <div className="text-xs text-gray-500">PHI Score</div>
+              <div className="text-xs text-gray-500">PPA Score</div>
               <div className="text-lg font-bold text-[#0D2821]">{satellite?.overall_score?.toFixed(0) || "—"}</div>
             </div>
           </div>
@@ -666,9 +666,9 @@ const Dashboard = () => {
                 className="lg:hidden fixed top-16 left-0 bottom-0 w-72 bg-white z-50 overflow-y-auto shadow-xl"
               >
                 <div className="p-4">
-                  {/* PHI Score Card */}
+                  {/* PPA Score Card */}
                   <div className="bg-gradient-to-br from-[#0D2821] to-[#1a4a3d] rounded-2xl p-4 text-white mb-4">
-                    <div className="text-xs opacity-70 mb-1">Planetary Health Index</div>
+                    <div className="text-xs opacity-70 mb-1">Planetary Performance Assessment</div>
                     <div className="flex items-end gap-2">
                       <span className="text-3xl font-bold">{satellite?.overall_score?.toFixed(1) || "—"}</span>
                       <span className="text-sm mb-1 opacity-70">/100</span>
@@ -747,9 +747,9 @@ const Dashboard = () => {
             className="hidden lg:block w-72 fixed left-0 top-20 bottom-0 bg-white/95 backdrop-blur-md border-r border-gray-200 overflow-y-auto z-20"
           >
             <div className="p-4">
-              {/* PHI Score Card */}
+              {/* PPA Score Card */}
               <div className="bg-gradient-to-br from-[#0D2821] to-[#1a4a3d] rounded-2xl p-5 text-white mb-4">
-                <div className="text-xs opacity-70 mb-1">Planetary Health Index</div>
+                <div className="text-xs opacity-70 mb-1">Planetary Performance Assessment</div>
                 <div className="flex items-end gap-2">
                   <span className="text-4xl font-bold">{satellite?.overall_score?.toFixed(1) || "—"}</span>
                   <span className="text-lg mb-1 opacity-70">/100</span>

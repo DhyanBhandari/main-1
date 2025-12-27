@@ -27,14 +27,14 @@ const ABCDEFramework = () => {
             className="flex flex-col items-center"
           >
             <h1 className="text-5xl md:text-6xl font-bold mb-8 tracking-tight text-gray-900 leading-[1.1]">
-              Quantifying Planetary Health  <br />
+              Quantifying Planetary Performance  <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0D2821] to-[#023030]">
                To Value Natural Capital
               </span>
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto font-medium leading-relaxed">
-              ErthaLoka's Technology measures ecosystem performance across five dimensions to create the Planetary Health Index (PHI).
+              ErthaLoka's Technology measures ecosystem performance across five dimensions to create the Planetary Performance Assessment (PPA).
             </p>
 
             <ScrollIndicator />
@@ -44,7 +44,7 @@ const ABCDEFramework = () => {
 
 
 
-      {/* PHI Section */}
+      {/* PPA Section */}
       <section className="py-20 bg-gradient-hero text-white">
         <div className="container px-4">
           <motion.div
@@ -55,13 +55,13 @@ const ABCDEFramework = () => {
             className="text-center max-w-4xl mx-auto"
           >
             <h2 className="text-5xl font-bold mb-6">
-              Planetary Health Index (PHI)
+              Planetary Performance Assessment (PPA)
             </h2>
             <p className="text-2xl mb-8 opacity-90">
               We don't just protect nature , we price its performance.
             </p>
             <p className="text-lg mb-12 opacity-80">
-              The PHI aggregates all five Proprietary dimensions into a single, comprehensive metric that represents the overall health and value of an ecosystem. This standardized index enables investors and stakeholders to compare natural capital assets, track performance over time, and make informed decisions based on verifiable planetary health data.
+              The PPA aggregates all five Proprietary dimensions into a single, comprehensive metric that represents the overall health and value of an ecosystem. This standardized index enables investors and stakeholders to compare natural capital assets, track performance over time, and make informed decisions based on verifiable planetary performance data.
             </p>
             <Button size="lg" className="bg-white text-[#0D2821] hover:bg-[#0D2821]/90 text-lg px-8 py-6">
               <a href="mailto:connect@erthaloka.com">Request a Demo </a>
@@ -111,9 +111,9 @@ const ABCDEFramework = () => {
                 ),
               },
               {
-                title: "3. PHI Calculation",
+                title: "3. PPA Calculation",
                 description:
-                  "Generate the Planetary Health Index (PHI). This single score (0-100) represents the ecological integrity and performance of the asset.",
+                  "Generate the Planetary Performance Assessment (PPA). This single score (0-100) represents the ecological integrity and performance of the asset.",
                 content: (
                   <div className="h-full w-full bg-[linear-gradient(to_bottom_right,#ec4899,#6366f1)] flex items-center justify-center text-white">
                     <div className="text-6xl font-bold">3</div>
@@ -123,7 +123,7 @@ const ABCDEFramework = () => {
               {
                 title: "4. Asset Creation",
                 description:
-                  "Issue Digital Natural Capital Assets based on the PHI. These assets are minted on the blockchain, ensuring transparency, immutability, and traceability.",
+                  "Issue Digital Natural Capital Assets based on the PPA. These assets are minted on the blockchain, ensuring transparency, immutability, and traceability.",
                 content: (
                   <div className="h-full w-full bg-[linear-gradient(to_bottom_right,#3b82f6,#8b5cf6)] flex items-center justify-center text-white">
                     <div className="text-6xl font-bold">4</div>

@@ -726,7 +726,7 @@ const GetTheReport = () => {
         </div>
       </section>
 
-      {/* PHI Score Summary Section */}
+      {/* PPA Score Summary Section */}
       {phiData?.summary && (
         <section className="py-8 bg-gradient-to-b from-[#065f46] to-[#065f46]">
           <div className="container px-4 mx-auto">

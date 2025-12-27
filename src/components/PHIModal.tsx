@@ -161,7 +161,7 @@ const PHIOptionsMenu = ({ onSelectSinglePoint, onSelectPolygon }: PHIOptionsMenu
               </p>
               <div className="flex flex-wrap gap-2">
                 <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                  PHI Score
+                  PPA Score
                 </span>
                 <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
                   5 Pillars

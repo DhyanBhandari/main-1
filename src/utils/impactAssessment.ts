@@ -1,6 +1,6 @@
 /**
  * Rule-based Impact Assessment Utility
- * Provides human-readable impact messages based on PHI scores
+ * Provides human-readable impact messages based on PPA scores
  */
 
 export interface ImpactAssessment {
@@ -183,39 +183,60 @@ export function getAllImpacts(
 }
 
 /**
- * Get overall status text based on PHI score
+ * Get overall status text based on PPA score (AAA to CCC grading)
  */
-export function getOverallStatus(phiScore: number): { status: string; description: string; color: string } {
-  if (phiScore >= 80) {
+export function getOverallStatus(ppaScore: number): { status: string; grade: string; description: string; color: string } {
+  if (ppaScore >= 86) {
     return {
       status: 'Excellent',
+      grade: 'AAA',
       description: 'This ecosystem is thriving and providing maximum benefits',
       color: '#10b981'
     };
   }
-  if (phiScore >= 60) {
+  if (ppaScore >= 72) {
     return {
-      status: 'Good',
-      description: 'Healthy ecosystem with strong environmental functions',
+      status: 'Very Good',
+      grade: 'AA',
+      description: 'Highly healthy ecosystem with strong environmental functions',
       color: '#22c55e'
     };
   }
-  if (phiScore >= 40) {
+  if (ppaScore >= 58) {
     return {
-      status: 'Moderate',
+      status: 'Good',
+      grade: 'A',
+      description: 'Healthy ecosystem with good environmental functions',
+      color: '#84cc16'
+    };
+  }
+  if (ppaScore >= 44) {
+    return {
+      status: 'Above Average',
+      grade: 'BBB',
+      description: 'Moderate ecosystem health with room for improvement',
+      color: '#eab308'
+    };
+  }
+  if (ppaScore >= 30) {
+    return {
+      status: 'Average',
+      grade: 'BB',
       description: 'Some environmental concerns require attention',
       color: '#f59e0b'
     };
   }
-  if (phiScore >= 20) {
+  if (ppaScore >= 16) {
     return {
-      status: 'Poor',
+      status: 'Below Average',
+      grade: 'B',
       description: 'Significant degradation affecting health and services',
       color: '#f97316'
     };
   }
   return {
-    status: 'Critical',
+    status: 'Poor',
+    grade: 'CCC',
     description: 'Urgent intervention needed to prevent collapse',
     color: '#ef4444'
   };

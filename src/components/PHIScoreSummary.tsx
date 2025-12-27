@@ -1,6 +1,6 @@
 /**
- * PHI Score Summary Component
- * Displays PHI score with human-readable impact assessments
+ * PPA Score Summary Component
+ * Displays Planetary Performance Assessment score with human-readable impact assessments
  * White theme version
  */
 
@@ -68,7 +68,7 @@ export const PHIScoreSummary = ({ summary, className = '' }: PHIScoreSummaryProp
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <Activity className="w-6 h-6 text-emerald-600" />
-        <h2 className="text-xl font-bold text-gray-900">Planetary Health Index</h2>
+        <h2 className="text-xl font-bold text-gray-900">Planetary Performance Assessment</h2>
       </div>
 
       {/* Score Section */}
@@ -77,7 +77,7 @@ export const PHIScoreSummary = ({ summary, className = '' }: PHIScoreSummaryProp
         <div className="lg:col-span-1 flex flex-col items-center justify-center bg-gray-50 rounded-xl p-6">
           <RadialGauge
             score={summary.overall_score || 0}
-            label="PHI Score"
+            label="PPA Score"
             size={180}
             showGrade={true}
           />

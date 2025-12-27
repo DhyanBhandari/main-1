@@ -252,7 +252,7 @@ const Landowners = () => {
                     { label: "Carbon Stock", value: "Mg/ha potential" },
                     { label: "Biodiversity Index", value: "Species richness score" },
                     { label: "Water Services", value: "Watershed contribution" },
-                    { label: "PHI Score", value: "0-100 ecosystem health" }
+                    { label: "PPA Score", value: "0-100 ecosystem health" }
                   ].map((metric, index) => (
                     <div key={index} className="flex justify-between items-center py-3 border-b border-white/20 last:border-0">
                       <span className="text-green-300">{metric.label}</span>

@@ -14,13 +14,15 @@ interface RadialGaugeProps {
   showGrade?: boolean;
 }
 
-// Grade mapping based on score
+// Grade mapping based on score (AAA to CCC scale)
 const getGradeInfo = (score: number) => {
-  if (score >= 90) return { grade: 'A', label: 'Excellent', color: '#16a34a', bgColor: 'rgba(22, 163, 74, 0.15)' };
-  if (score >= 70) return { grade: 'B', label: 'Good', color: '#84cc16', bgColor: 'rgba(132, 204, 22, 0.15)' };
-  if (score >= 50) return { grade: 'C', label: 'Fair', color: '#eab308', bgColor: 'rgba(234, 179, 8, 0.15)' };
-  if (score >= 30) return { grade: 'D', label: 'Poor', color: '#f97316', bgColor: 'rgba(249, 115, 22, 0.15)' };
-  return { grade: 'F', label: 'Critical', color: '#dc2626', bgColor: 'rgba(220, 38, 38, 0.15)' };
+  if (score >= 86) return { grade: 'AAA', label: 'Excellent', color: '#16a34a', bgColor: 'rgba(22, 163, 74, 0.15)' };
+  if (score >= 72) return { grade: 'AA', label: 'Very Good', color: '#22c55e', bgColor: 'rgba(34, 197, 94, 0.15)' };
+  if (score >= 58) return { grade: 'A', label: 'Good', color: '#84cc16', bgColor: 'rgba(132, 204, 22, 0.15)' };
+  if (score >= 44) return { grade: 'BBB', label: 'Above Average', color: '#eab308', bgColor: 'rgba(234, 179, 8, 0.15)' };
+  if (score >= 30) return { grade: 'BB', label: 'Average', color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.15)' };
+  if (score >= 16) return { grade: 'B', label: 'Below Average', color: '#f97316', bgColor: 'rgba(249, 115, 22, 0.15)' };
+  return { grade: 'CCC', label: 'Poor', color: '#dc2626', bgColor: 'rgba(220, 38, 38, 0.15)' };
 };
 
 export const RadialGauge = ({

@@ -49,10 +49,10 @@ const Technology = () => {
       layer: 3,
       name: "Financial Engine",
       subtitle: "Valuation",
-      description: "Proprietary PHI framework converts ecological performance into verifiable, tradeable asset values.",
+      description: "Proprietary PPA framework converts ecological performance into verifiable, tradeable asset values.",
       icon: Calculator,
       color: "from-green-500 to-emerald-500",
-      features: ["PHI score calculation", "ESV (Ecosystem Service Value)", "Carbon credit quantification", "Risk-adjusted pricing"]
+      features: ["PPA score calculation", "ESV (Ecosystem Service Value)", "Carbon credit quantification", "Risk-adjusted pricing"]
     },
     {
       layer: 4,
@@ -77,7 +77,7 @@ const Technology = () => {
 
   // Quick Links to Technology Pages
   const quickLinks = [
-    { name: "PHI Framework", description: "Planetary Health Index methodology", href: "/abcde-framework" },
+    { name: "PPA Framework", description: "Planetary Performance Assessment methodology", href: "/abcde-framework" },
     { name: "Measure", description: "Data collection process", href: "/measure" },
     { name: "Verify", description: "Verification protocols", href: "/verify" },
     { name: "EPA Registry", description: "Browse ecological assets", href: "/projects/current" }

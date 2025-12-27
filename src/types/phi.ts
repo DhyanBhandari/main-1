@@ -1,10 +1,10 @@
 /**
- * TypeScript interfaces for Planetary Health Index API
+ * TypeScript interfaces for Planetary Performance Assessment API
  * Matches the backend response structure from Hello-/app.py
  */
 
 // Request types
-export interface PHIQueryRequest {
+export interface PPAQueryRequest {
   latitude: number;
   longitude: number;
   mode?: 'simple' | 'comprehensive';
@@ -63,17 +63,43 @@ export type EcosystemType =
   | 'urban_green'
   | 'default';
 
-// Score interpretation
+// Score interpretation (AAA to CCC grading scale)
 export type ScoreInterpretation =
-  | 'Excellent'
-  | 'Good'
-  | 'Moderate'
-  | 'Poor'
-  | 'Critical'
+  | 'AAA'    // Excellent (86-100)
+  | 'AA'     // Very Good (72-85)
+  | 'A'      // Good (58-71)
+  | 'BBB'    // Above Average (44-57)
+  | 'BB'     // Average (30-43)
+  | 'B'      // Below Average (16-29)
+  | 'CCC'    // Poor (0-15)
   | 'Unavailable';
 
-// Summary structure (PHI Technical Framework)
-export interface PHISummary {
+// Grade labels for display
+export const GRADE_LABELS: Record<string, string> = {
+  'AAA': 'Excellent',
+  'AA': 'Very Good',
+  'A': 'Good',
+  'BBB': 'Above Average',
+  'BB': 'Average',
+  'B': 'Below Average',
+  'CCC': 'Poor',
+  'Unavailable': 'Unavailable'
+};
+
+// Helper function to get grade from score
+export const getGradeFromScore = (score: number | null | undefined): ScoreInterpretation => {
+  if (score === null || score === undefined) return 'Unavailable';
+  if (score >= 86) return 'AAA';
+  if (score >= 72) return 'AA';
+  if (score >= 58) return 'A';
+  if (score >= 44) return 'BBB';
+  if (score >= 30) return 'BB';
+  if (score >= 16) return 'B';
+  return 'CCC';
+};
+
+// Summary structure (PPA Technical Framework)
+export interface PPASummary {
   // Core scores
   overall_score: number;
   overall_interpretation?: ScoreInterpretation;
@@ -104,12 +130,17 @@ export interface TimeSeriesInfo {
 }
 
 // Full API response
-export interface PHIResponse {
+export interface PPAResponse {
   query: QueryMetadata;
   pillars: Record<string, PillarData>;
-  summary: PHISummary;
+  summary: PPASummary;
   time_series: TimeSeriesInfo;
 }
+
+// Backward compatibility aliases
+export type PHIQueryRequest = PPAQueryRequest;
+export type PHISummary = PPASummary;
+export type PHIResponse = PPAResponse;
 
 // Pillar configuration (for UI display)
 export interface PillarConfig {
@@ -213,19 +244,23 @@ export const formatMetricValue = (value: number | null, unit?: string): string =
   return unit ? `${formatted} ${unit}` : formatted;
 };
 
-// Helper function to get interpretation color
+// Helper function to get interpretation/grade color
 export const getInterpretationColor = (interpretation: ScoreInterpretation | undefined): string => {
   switch (interpretation) {
-    case 'Excellent':
-      return '#22c55e'; // green
-    case 'Good':
-      return '#84cc16'; // lime
-    case 'Moderate':
-      return '#f59e0b'; // amber
-    case 'Poor':
-      return '#f97316'; // orange
-    case 'Critical':
-      return '#ef4444'; // red
+    case 'AAA':
+      return '#22c55e'; // green - Excellent
+    case 'AA':
+      return '#4ade80'; // light green - Very Good
+    case 'A':
+      return '#84cc16'; // lime - Good
+    case 'BBB':
+      return '#facc15'; // yellow - Above Average
+    case 'BB':
+      return '#f59e0b'; // amber - Average
+    case 'B':
+      return '#f97316'; // orange - Below Average
+    case 'CCC':
+      return '#ef4444'; // red - Poor
     case 'Unavailable':
     default:
       return '#6b7280'; // gray

@@ -1,7 +1,7 @@
 /**
  * InstituteDashboard.tsx - Institute-specific Dashboard for Polygon Areas
  *
- * Displays PHI data for an institute's polygon (4-point) land area.
+ * Displays PPA data for an institute's polygon (4-point) land area.
  * Uses the polygon query API endpoint for data fetching.
  */
 
@@ -357,7 +357,7 @@ const InstituteDashboard = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="lg:hidden text-right">
-              <div className="text-xs text-gray-500">PHI Score</div>
+              <div className="text-xs text-gray-500">PPA Score</div>
               <div className="text-lg font-bold text-[#0D2821]">{satellite?.overall_score?.toFixed(0) || "—"}</div>
             </div>
             <button
@@ -390,7 +390,7 @@ const InstituteDashboard = () => {
               >
                 <div className="p-4">
                   <div className="bg-gradient-to-br from-[#0D2821] to-[#1a4a3d] rounded-2xl p-4 text-white mb-4">
-                    <div className="text-xs opacity-70 mb-1">Planetary Health Index</div>
+                    <div className="text-xs opacity-70 mb-1">Planetary Performance Assessment</div>
                     <div className="flex items-end gap-2">
                       <span className="text-3xl font-bold">{satellite?.overall_score?.toFixed(1) || "—"}</span>
                       <span className="text-sm mb-1 opacity-70">/100</span>
@@ -444,7 +444,7 @@ const InstituteDashboard = () => {
               <Building2 className="w-4 h-4" />
               {session.instituteName}
             </div>
-            <div className="text-xs opacity-70 mb-1">Planetary Health Index</div>
+            <div className="text-xs opacity-70 mb-1">Planetary Performance Assessment</div>
             <div className="flex items-end gap-2">
               <span className="text-4xl font-bold">{satellite?.overall_score?.toFixed(1) || "—"}</span>
               <span className="text-sm mb-1 opacity-70">/100</span>

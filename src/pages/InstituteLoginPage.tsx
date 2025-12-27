@@ -103,7 +103,7 @@ const InstituteLoginPage = () => {
               <Building2 className="w-6 h-6" />
               <div>
                 <h1 className="text-xl font-bold">Institute Login</h1>
-                <p className="text-sm opacity-70">Access your PHI dashboard</p>
+                <p className="text-sm opacity-70">Access your PPA dashboard</p>
               </div>
             </div>
           </div>

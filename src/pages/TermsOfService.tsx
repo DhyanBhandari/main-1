@@ -31,7 +31,7 @@ const TermsOfService = () => {
                   ErthaLoka provides a platform for planetary health assessment, natural capital valuation, and ecosystem preservation services. Our services include:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 mt-4">
-                  <li>Planetary Health Index (PHI) reports and analysis</li>
+                  <li>Planetary Performance Assessment (PPA) reports and analysis</li>
                   <li>Ecological Performance Asset (EPA) tracking</li>
                   <li>Blockchain Proof of Preservation (B-POP) verification</li>
                   <li>Ecosystem measurement and monitoring tools</li>
