@@ -126,7 +126,7 @@ export const PILLAR_CONFIGS: Record<string, PillarConfig> = {
   A: {
     id: 'A',
     name: 'Atmospheric',
-    fullName: 'Atmospheric Quality',
+    fullName: 'Atmospheric Health',
     color: '#3498db',
     icon: 'Wind',
     description: 'Air quality, aerosol optical depth, UV index'
@@ -134,23 +134,23 @@ export const PILLAR_CONFIGS: Record<string, PillarConfig> = {
   B: {
     id: 'B',
     name: 'Biodiversity',
-    fullName: 'Biodiversity Index',
+    fullName: 'Biodiversity',
     color: '#27ae60',
     icon: 'Leaf',
     description: 'Vegetation indices, land cover classification'
   },
   C: {
     id: 'C',
-    name: 'Carbon',
-    fullName: 'Carbon Stock',
+    name: 'Climate',
+    fullName: 'Climate',
     color: '#8e44ad',
     icon: 'TreePine',
     description: 'Forest cover, biomass, carbon sequestration'
   },
   D: {
     id: 'D',
-    name: 'Degradation',
-    fullName: 'Land Degradation',
+    name: 'DLWD',
+    fullName: 'Decrease in Land & Water Degradation',
     color: '#e74c3c',
     icon: 'Thermometer',
     description: 'Land surface temperature, soil moisture, drought'
