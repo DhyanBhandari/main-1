@@ -271,8 +271,8 @@ const AuthFormContent = ({ onAuthSuccess }: AuthFormContentProps) => {
       </h2>
       <p className="text-gray-600 mb-6">
         {isSignUp
-          ? "Sign up to access PHI Reports"
-          : "Sign in to get your PHI Report"}
+          ? "Sign up to get your Natural Capital Assessment"
+          : "Sign in to get your Natural Capital Assessment"}
       </p>
 
       {error && (
@@ -519,7 +519,7 @@ const PHIReportFormContent = ({ onClose }: PHIReportFormContentProps) => {
       )}
 
       <h2 className="text-2xl sm:text-3xl font-bold text-[#0d2821] mb-2">
-        Get Your PHI Report
+        Get Your Natural Capital Assessment
       </h2>
       <p className="text-gray-600 mb-6">
         Enter your location coordinates to analyze environmental data
@@ -592,7 +592,7 @@ const PHIReportFormContent = ({ onClose }: PHIReportFormContentProps) => {
               Preparing Report...
             </>
           ) : (
-            "Get Your PHI Report"
+            "Get Your Natural Capital Assessment"
           )}
         </button>
 

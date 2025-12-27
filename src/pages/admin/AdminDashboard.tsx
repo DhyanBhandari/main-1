@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Clock, CheckCircle, Users, Bell } from 'lucide-react';
+import { Menu, X, Clock, CheckCircle, Users, Bell, Plus } from 'lucide-react';
 import { useAdmin } from '@/admin';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -13,6 +13,7 @@ import ApprovedOrganizationsTable from '@/components/admin/ApprovedOrganizations
 import NotificationPanel from '@/components/admin/NotificationPanel';
 import ApproveRequestModal from '@/components/admin/ApproveRequestModal';
 import RejectRequestModal from '@/components/admin/RejectRequestModal';
+import CreateOrganizationModal from '@/components/admin/CreateOrganizationModal';
 import {
   getPendingRequests,
   getAllRequests,
@@ -49,6 +50,7 @@ const AdminDashboard = () => {
   // Modal states
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<AccessRequest | null>(null);
 
   // Load initial data
@@ -185,19 +187,28 @@ const AdminDashboard = () => {
       <main className="lg:ml-64 pt-16 pb-20 lg:pb-8 min-h-screen">
         <div className="p-4 md:p-6 max-w-6xl mx-auto">
           {/* Page Title */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {activeTab === 'pending' && 'Pending Requests'}
-              {activeTab === 'approved' && 'Approved Organizations'}
-              {activeTab === 'all' && 'All Requests'}
-              {activeTab === 'notifications' && 'Notifications'}
-            </h1>
-            <p className="text-gray-500 text-sm mt-1">
-              {activeTab === 'pending' && 'Review and approve organization access requests'}
-              {activeTab === 'approved' && 'Organizations with active dashboard access'}
-              {activeTab === 'all' && 'View all access requests'}
-              {activeTab === 'notifications' && 'Stay updated on system activity'}
-            </p>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {activeTab === 'pending' && 'Pending Requests'}
+                {activeTab === 'approved' && 'Approved Organizations'}
+                {activeTab === 'all' && 'All Requests'}
+                {activeTab === 'notifications' && 'Notifications'}
+              </h1>
+              <p className="text-gray-500 text-sm mt-1">
+                {activeTab === 'pending' && 'Review and approve organization access requests'}
+                {activeTab === 'approved' && 'Organizations with active dashboard access'}
+                {activeTab === 'all' && 'View all access requests'}
+                {activeTab === 'notifications' && 'Stay updated on system activity'}
+              </p>
+            </div>
+            <button
+              onClick={() => setCreateModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#0D2821] text-white rounded-lg hover:bg-[#065f46] transition-colors font-medium shadow-sm"
+            >
+              <Plus className="w-5 h-5" />
+              Create Organization
+            </button>
           </div>
 
           {/* Content */}
@@ -264,6 +275,13 @@ const AdminDashboard = () => {
           setRejectModalOpen(false);
           setSelectedRequest(null);
         }}
+        onSuccess={handleApprovalSuccess}
+      />
+
+      <CreateOrganizationModal
+        isOpen={createModalOpen}
+        adminEmail={admin?.email || ''}
+        onClose={() => setCreateModalOpen(false)}
         onSuccess={handleApprovalSuccess}
       />
     </div>
