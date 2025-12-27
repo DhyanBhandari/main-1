@@ -10,10 +10,10 @@ from ..core.config import DATASETS
 
 
 class CarbonPillar(BasePillar):
-    """Carbon pillar - forest and carbon storage."""
+    """Climate pillar - forest and carbon storage."""
 
     PILLAR_ID = "C"
-    PILLAR_NAME = "Carbon"
+    PILLAR_NAME = "Climate"
     PILLAR_COLOR = "#8e44ad"
 
     def get_simple_metrics(self) -> List[str]:

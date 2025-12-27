@@ -269,7 +269,7 @@ PILLAR_CONFIG = {
         "weight": 0.20
     },
     "C": {
-        "name": "Carbon",
+        "name": "Climate",
         "description": "Forest cover, biomass, and carbon storage",
         "color": "#8e44ad",
         "simple_metrics": ["tree_cover", "forest_loss"],
@@ -277,8 +277,8 @@ PILLAR_CONFIG = {
         "weight": 0.20
     },
     "D": {
-        "name": "Degradation",
-        "description": "Land and water stress indicators",
+        "name": "DLWD",
+        "description": "Decrease in Land & Water Degradation indicators",
         "color": "#e74c3c",
         "simple_metrics": ["lst", "soil_moisture"],
         "comprehensive_metrics": ["lst", "soil_moisture", "water_occurrence", "drought_index", "evaporative_stress"],

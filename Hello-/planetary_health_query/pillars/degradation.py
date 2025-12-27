@@ -10,10 +10,10 @@ from ..core.config import DATASETS
 
 
 class DegradationPillar(BasePillar):
-    """Degradation pillar - land and water stress indicators."""
+    """DLWD pillar - Decrease in Land & Water Degradation indicators."""
 
     PILLAR_ID = "D"
-    PILLAR_NAME = "Degradation"
+    PILLAR_NAME = "DLWD"
     PILLAR_COLOR = "#e74c3c"
 
     def get_simple_metrics(self) -> List[str]:
