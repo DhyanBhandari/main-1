@@ -21,12 +21,19 @@ import BPOP from "@/pages/BPOP";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import { AuthProvider } from "@/auth";
+import { AdminProvider, AdminProtectedRoute } from "@/admin";
 // New audience-centric pages
 import Landowners from "@/pages/Landowners";
 import CorporatesInvestors from "@/pages/CorporatesInvestors";
 import FinancialInstitutions from "@/pages/FinancialInstitutions";
 import Blockchain from "@/pages/Blockchain";
 import Dashboard from "@/pages/Dashboard";
+import InstituteDashboard from "@/pages/InstituteDashboard";
+import InstituteProtectedRoute from "@/components/InstituteProtectedRoute";
+import InstituteLoginPage from "@/pages/InstituteLoginPage";
+// Admin pages
+import AdminLoginPage from "@/pages/admin/AdminLoginPage";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +54,22 @@ const AnimatedRoutes = () => {
         <Route path="/verify" element={<PageTransition><Verify /></PageTransition>} />
         <Route path="/blockchain" element={<PageTransition><Blockchain /></PageTransition>} />
         <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+
+        {/* Institute Dashboard routes */}
+        <Route path="/institute/login" element={<PageTransition><InstituteLoginPage /></PageTransition>} />
+        <Route path="/institute/:instituteId/dashboard" element={
+          <InstituteProtectedRoute>
+            <PageTransition><InstituteDashboard /></PageTransition>
+          </InstituteProtectedRoute>
+        } />
+
+        {/* Admin routes */}
+        <Route path="/admin/login" element={<PageTransition><AdminLoginPage /></PageTransition>} />
+        <Route path="/admin" element={
+          <AdminProtectedRoute>
+            <PageTransition><AdminDashboard /></PageTransition>
+          </AdminProtectedRoute>
+        } />
         <Route path="/abcde-framework" element={<PageTransition><ABCDEFramework /></PageTransition>} />
         <Route path="/technology" element={<PageTransition><Technology /></PageTransition>} />
         <Route path="/projects/current" element={<PageTransition><CurrentProjects /></PageTransition>} />
@@ -73,8 +96,10 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <ScrollToTop />
-          <AnimatedRoutes />
+          <AdminProvider>
+            <ScrollToTop />
+            <AnimatedRoutes />
+          </AdminProvider>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

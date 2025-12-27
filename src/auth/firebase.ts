@@ -7,6 +7,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 
 // Firebase configuration from environment variables
@@ -35,6 +36,9 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize Firestore
+export const db = getFirestore(app);
 
 // Initialize Analytics only when supported (avoids deprecation warnings)
 let analytics: Analytics | null = null;

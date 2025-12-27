@@ -1,6 +1,6 @@
 import logo from "@/assets/logo-new.png";
-import { Mail, MapPin } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Mail, MapPin, Shield } from "lucide-react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const Footer = () => {
     const navigate = useNavigate();
@@ -109,6 +109,13 @@ const Footer = () => {
                     <div className="flex items-center gap-6">
                         <a href="#" className="text-sm text-gray-500 hover:text-green-400 transition-colors">Privacy Policy</a>
                         <a href="#" className="text-sm text-gray-500 hover:text-green-400 transition-colors">Terms of Service</a>
+                        <Link
+                            to="/admin/login"
+                            className="text-sm text-gray-500 hover:text-green-400 transition-colors flex items-center gap-1"
+                        >
+                            <Shield className="w-4 h-4" />
+                            Admin Login
+                        </Link>
                     </div>
                 </div>
             </div>

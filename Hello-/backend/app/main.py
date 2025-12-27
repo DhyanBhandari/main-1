@@ -19,8 +19,10 @@ from app.api import routes
 from app.api import sensor_routes
 from app.api import satellite_routes
 from app.api import dashboard_routes
+from app.api import admin_routes
 from app.services.earth_engine import initialize_ee
 from app.services.dashboard_service import get_dashboard_service
+from app.services.admin_service import get_admin_service
 from app.config import PDF_OUTPUT_DIR
 
 
@@ -54,6 +56,16 @@ async def lifespan(app: FastAPI):
         print(f"Warning: Dashboard initialization failed: {e}")
         print("Dashboard will attempt to initialize on first request.")
 
+    # Initialize Admin service
+    print("Initializing Admin service...")
+    try:
+        admin_service = get_admin_service()
+        await admin_service.init_db()
+        print("Admin service initialized successfully!")
+    except Exception as e:
+        print(f"Warning: Admin initialization failed: {e}")
+        print("Admin will attempt to initialize on first request.")
+
     yield
     print("Shutting down...")
 
@@ -82,6 +94,7 @@ app.include_router(routes.router, prefix="/api", tags=["Planetary Health"])
 app.include_router(sensor_routes.router, prefix="/api", tags=["Sensor Data"])
 app.include_router(satellite_routes.router, prefix="/api", tags=["Satellite Imagery"])
 app.include_router(dashboard_routes.router, prefix="/api", tags=["Dashboard"])
+app.include_router(admin_routes.router, prefix="/api", tags=["Admin"])
 
 
 @app.get("/")
@@ -121,6 +134,20 @@ async def root():
                 "aqi_history": "/api/dashboard/aqi/history",
                 "satellite_history": "/api/dashboard/satellite/history",
                 "status": "/api/dashboard/status"
+            },
+            "admin": {
+                "signup": "/api/admin/signup",
+                "login": "/api/admin/login",
+                "requests_pending": "/api/admin/requests/pending",
+                "requests_all": "/api/admin/requests/all",
+                "approve": "/api/admin/requests/approve",
+                "reject": "/api/admin/requests/reject",
+                "institutes": "/api/admin/institutes",
+                "create_institute": "/api/admin/institutes/create",
+                "institute_login": "/api/admin/institutes/login",
+                "change_password": "/api/admin/institutes/change-password",
+                "send_email": "/api/admin/email/send-credentials",
+                "stats": "/api/admin/stats"
             }
         }
     }
