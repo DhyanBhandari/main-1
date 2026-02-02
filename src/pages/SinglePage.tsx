@@ -311,7 +311,7 @@ const SinglePage = () => {
                     onClick={() => setIsSignUpModalOpen(true)}
                     className="h-12 md:h-14 px-8 md:px-10 rounded-full bg-[#0D2821] hover:bg-[#065f46] text-white shadow-[0_0_20px_-5px_rgba(22,163,74,0.4)] hover:shadow-[0_0_25px_-5px_rgba(22,163,74,0.6)] hover:scale-105 transition-all duration-300 text-base md:text-lg font-medium"
                   >
-                    Watch the Demo
+                    Request for the Demo
                   </button>
                 </motion.div>
               </div>
