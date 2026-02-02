@@ -7,7 +7,7 @@
  * 3. Show generated credentials
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -20,6 +20,7 @@ import {
   MapPin,
   Loader2,
   CheckCircle,
+  Key,
 } from 'lucide-react';
 import PolygonLandSelector from '@/components/PolygonLandSelector';
 import CredentialsDisplay from './CredentialsDisplay';
@@ -50,6 +51,29 @@ export function ApproveRequestModal({
   const [error, setError] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [passwordMode, setPasswordMode] = useState<'auto' | 'custom'>('auto');
+  const [customPassword, setCustomPassword] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll position when modal opens or step changes
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.scrollTop = 0;
+        }
+      }, 0);
+    }
+  }, [isOpen, step]);
+
+  const handleContinueToPolygon = () => {
+    if (passwordMode === 'custom' && !customPassword.trim()) {
+      setError('Please enter a custom password or select auto-generate');
+      return;
+    }
+    setError(null);
+    setStep('polygon');
+  };
 
   const handlePolygonComplete = async (points: PolygonPoint[]) => {
     setPolygonPoints(points);
@@ -59,7 +83,8 @@ export function ApproveRequestModal({
     try {
       if (!request) throw new Error('No request selected');
 
-      const creds = await approveRequest(Number(request.id), points, adminEmail);
+      const password = passwordMode === 'auto' ? undefined : customPassword;
+      const creds = await approveRequest(Number(request.id), points, adminEmail, password);
       setCredentials(creds);
       setStep('credentials');
     } catch (err) {
@@ -85,6 +110,8 @@ export function ApproveRequestModal({
     setCredentials(null);
     setError(null);
     setEmailSent(false);
+    setPasswordMode('auto');
+    setCustomPassword('');
 
     if (credentials) {
       onSuccess();
@@ -104,6 +131,7 @@ export function ApproveRequestModal({
         onClick={handleClose}
       >
         <motion.div
+          ref={modalRef}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -212,9 +240,62 @@ export function ApproveRequestModal({
                   <div className="text-gray-700 bg-gray-50 p-4 rounded-lg">{request.message}</div>
                 </div>
 
+                {/* Password Options */}
+                <div className="pt-6 border-t border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <Key className="w-4 h-4" />
+                    Password Generation <span className="text-red-500">*</span>
+                  </label>
+                  <div className="space-y-3">
+                    <label className={`flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50 ${passwordMode === 'auto' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
+                      <input
+                        type="radio"
+                        name="passwordMode"
+                        value="auto"
+                        checked={passwordMode === 'auto'}
+                        onChange={() => setPasswordMode('auto')}
+                        className="mt-1 w-4 h-4 text-green-600"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">Auto-Generate Password (Recommended)</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          System will create a secure random password that will be displayed after approval
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className={`flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50 ${passwordMode === 'custom' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
+                      <input
+                        type="radio"
+                        name="passwordMode"
+                        value="custom"
+                        checked={passwordMode === 'custom'}
+                        onChange={() => setPasswordMode('custom')}
+                        className="mt-1 w-4 h-4 text-green-600"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">Set Custom Password</p>
+                        <p className="text-sm text-gray-600 mt-1 mb-2">
+                          Enter a specific password for this organization
+                        </p>
+                        {passwordMode === 'custom' && (
+                          <input
+                            type="text"
+                            value={customPassword}
+                            onChange={(e) => setCustomPassword(e.target.value)}
+                            placeholder="Enter password"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            required={passwordMode === 'custom'}
+                          />
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="flex justify-end">
                   <button
-                    onClick={() => setStep('polygon')}
+                    onClick={handleContinueToPolygon}
                     className="flex items-center gap-2 px-6 py-3 bg-[#0D2821] text-white rounded-lg hover:bg-[#065f46] transition-colors"
                   >
                     Continue to Polygon Selection

@@ -31,6 +31,7 @@ import Dashboard from "@/pages/Dashboard";
 import InstituteDashboard from "@/pages/InstituteDashboard";
 import InstituteProtectedRoute from "@/components/InstituteProtectedRoute";
 import InstituteLoginPage from "@/pages/InstituteLoginPage";
+import VideoPage from "@/pages/VideoPage";
 // Admin pages
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -78,6 +79,7 @@ const AnimatedRoutes = () => {
         <Route path="/about" element={<PageTransition><About /></PageTransition>} />
         <Route path="/Data" element={<PageTransition><Data /></PageTransition>} />
         <Route path="/getthereport" element={<PageTransition><GetTheReport /></PageTransition>} />
+        <Route path="/video" element={<PageTransition><VideoPage /></PageTransition>} />
         <Route path="/bpop" element={<PageTransition><BPOP /></PageTransition>} />
         <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
         <Route path="/terms-of-service" element={<PageTransition><TermsOfService /></PageTransition>} />

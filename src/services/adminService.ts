@@ -17,7 +17,6 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/auth/firebase';
-import { hashPassword } from '@/services/instituteAuth';
 import type {
   AccessRequest,
   AccessRequestFormData,
@@ -193,73 +192,14 @@ export async function getApprovedOrganizations(): Promise<Institute[]> {
 
 /**
  * Approve access request and create institute
+ * @deprecated This function is deprecated. Use approveRequest from @/services/adminApi instead (calls backend API)
  */
 export async function approveRequest(
   requestId: string,
   polygonPoints: PolygonPoint[],
   adminEmail: string
 ): Promise<GeneratedCredentials> {
-  // Get the request
-  const requestRef = doc(db, ACCESS_REQUESTS_COLLECTION, requestId);
-  const requestSnap = await getDoc(requestRef);
-
-  if (!requestSnap.exists()) {
-    throw new Error('Access request not found');
-  }
-
-  const requestData = requestSnap.data();
-
-  // Generate credentials
-  const instituteId = generateInstituteId();
-  const plainPassword = generateSecurePassword();
-  const hashedPassword = await hashPassword(plainPassword);
-
-  // Convert polygon points to coordinates array
-  const coordinates: [number, number][] = polygonPoints.map((p) => [p.lat, p.lng]);
-
-  // Create institute document
-  await addDoc(collection(db, INSTITUTES_COLLECTION), {
-    id: instituteId,
-    name: requestData.organizationName,
-    organizationType: requestData.organizationType,
-    email: requestData.email,
-    phone: requestData.fullPhone,
-    password_hash: hashedPassword,
-    polygon: { coordinates },
-    requiresPasswordChange: true,
-    created_at: serverTimestamp(),
-    updated_at: serverTimestamp(),
-    createdBy: adminEmail,
-    accessRequestId: requestId,
-  });
-
-  // Update request status
-  await updateDoc(requestRef, {
-    status: 'approved',
-    approvedBy: adminEmail,
-    approvedAt: serverTimestamp(),
-    instituteId: instituteId,
-    updatedAt: serverTimestamp(),
-  });
-
-  // Create notification
-  await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
-    type: 'approval',
-    title: 'Request Approved',
-    message: `${requestData.organizationName} has been approved`,
-    read: false,
-    createdAt: serverTimestamp(),
-    metadata: {
-      requestId,
-      instituteId,
-      email: requestData.email,
-    },
-  });
-
-  return {
-    instituteId,
-    password: plainPassword,
-  };
+  throw new Error('This function is deprecated. Use approveRequest from @/services/adminApi instead');
 }
 
 /**

@@ -22,6 +22,8 @@ import { X, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { signInWithGoogle, getCurrentUser, onAuthChange, AuthUser } from "@/auth/authService";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/db/firestore";
+import { useNavigate } from "react-router-dom";
+import emailjs from "@emailjs/browser";
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -84,6 +86,17 @@ interface FormData {
 }
 
 export const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
+  const navigate = useNavigate();
+
+  // Initialize EmailJS on component mount
+  useEffect(() => {
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    if (publicKey) {
+      emailjs.init(publicKey);
+      console.log("📧 EmailJS initialized with public key");
+    }
+  }, []);
+
   // Auth state
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -198,10 +211,11 @@ export const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
       }
 
       // Prepare submission data
+      const userEmail = useAlternateEmail ? formData.alternateEmail : formData.email;
       const submissionData = {
         uid: user?.uid,
         name: formData.name,
-        email: useAlternateEmail ? formData.alternateEmail : formData.email,
+        email: userEmail,
         googleEmail: formData.email,
         countryCode: formData.countryCode,
         phoneNumber: formData.phoneNumber,
@@ -213,10 +227,56 @@ export const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
         source: "website_signup",
       };
 
+      // Send email via EmailJS
+      try {
+        const emailParams = {
+          from_name: formData.name,
+          user_email: userEmail,
+          phone_number: `${formData.countryCode} ${formData.phoneNumber}`,
+          business_type: formData.businessType,
+          organization_name: formData.organizationName,
+          message: formData.message,
+          submission_date: new Date().toLocaleString(),
+        };
+
+        console.log("📤 Sending email with params:", emailParams);
+        console.log("🔑 Service ID:", import.meta.env.VITE_EMAILJS_SERVICE_ID);
+        console.log("📋 Template ID:", import.meta.env.VITE_EMAILJS_TEMPLATE_ID);
+
+        const response = await emailjs.send(
+          import.meta.env.VITE_EMAILJS_SERVICE_ID,
+          import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+          emailParams,
+          import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+        );
+        console.log("✅ Email sent successfully! Response:", response);
+      } catch (emailError: any) {
+        console.error("⚠️ Email sending failed:", emailError);
+        console.error("Error details:", {
+          status: emailError?.status,
+          text: emailError?.text,
+          message: emailError?.message
+        });
+        // Continue even if email fails - we still want to show the video
+      }
+
       // Save to Firestore
-      await addDoc(collection(db, "signups"), submissionData);
+      try {
+        await addDoc(collection(db, "signups"), submissionData);
+        console.log("✅ Sign-up data saved to Firestore successfully");
+      } catch (firestoreError) {
+        console.error("⚠️ Firestore save failed:", firestoreError);
+        console.log("📝 Sign-up data (not saved):", submissionData);
+        // Continue to success even if Firestore fails - we still want to show the video
+      }
 
       setSubmitSuccess(true);
+
+      // Navigate to video page after 1.5 seconds
+      setTimeout(() => {
+        onClose();
+        navigate("/video");
+      }, 1500);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Submission failed");
     } finally {

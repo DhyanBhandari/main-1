@@ -2,9 +2,9 @@
  * AdminSidebar - Navigation sidebar for admin dashboard
  */
 
-import { Clock, CheckCircle, Users, Bell, Settings } from 'lucide-react';
+import { Clock, CheckCircle, Users, Bell, Settings, LayoutDashboard } from 'lucide-react';
 
-type TabType = 'pending' | 'approved' | 'all' | 'notifications';
+type TabType = 'pending' | 'approved' | 'all' | 'notifications' | 'dashboards';
 
 interface AdminSidebarProps {
   activeTab: TabType;
@@ -22,6 +22,14 @@ export function AdminSidebar({
   unreadNotifications,
 }: AdminSidebarProps) {
   const tabs = [
+    {
+      id: 'dashboards' as TabType,
+      label: 'Dashboards',
+      icon: LayoutDashboard,
+      count: approvedCount,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-100',
+    },
     {
       id: 'pending' as TabType,
       label: 'Pending Requests',

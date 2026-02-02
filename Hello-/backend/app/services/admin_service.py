@@ -226,7 +226,8 @@ class AdminService:
 
         # Generate credentials
         institute_id = self.generate_institute_id()
-        password = self.generate_password()
+        # Use custom password if provided, otherwise auto-generate
+        password = data.password if data.password else self.generate_password()
         password_hash = self.hash_password(password)
 
         # Convert polygon points to coordinates
@@ -288,7 +289,8 @@ class AdminService:
         """Create institute directly (without access request)."""
         # Generate credentials
         institute_id = self.generate_institute_id()
-        password = self.generate_password()
+        # Use custom password if provided, otherwise auto-generate
+        password = data.password if data.password else self.generate_password()
         password_hash = self.hash_password(password)
 
         # Convert polygon points to coordinates
@@ -406,6 +408,123 @@ class AdminService:
                 (new_hash, datetime.now().isoformat(), institute_id),
             )
             await db.commit()
+
+    # ==================== ADMIN OPERATIONS ====================
+
+    async def update_institute(
+        self, institute_id: str, updates: Dict[str, Any]
+    ) -> Optional[GeneratedCredentials]:
+        """Update institute details. Returns new credentials if password was changed."""
+        institute = await self.get_institute_by_id(institute_id)
+        if not institute:
+            raise ValueError("Institute not found")
+
+        # Build update query dynamically
+        update_fields = []
+        update_values = []
+        new_password = None
+
+        if "organization_name" in updates and updates["organization_name"]:
+            update_fields.append("name = ?")
+            update_values.append(updates["organization_name"])
+
+        if "organization_type" in updates and updates["organization_type"]:
+            update_fields.append("organization_type = ?")
+            update_values.append(updates["organization_type"])
+
+        if "email" in updates and updates["email"]:
+            update_fields.append("email = ?")
+            update_values.append(updates["email"])
+
+        if "phone" in updates and updates["phone"]:
+            update_fields.append("phone = ?")
+            update_values.append(updates["phone"])
+
+        if "polygon_points" in updates and updates["polygon_points"]:
+            # Convert polygon points to coordinates
+            coordinates = [[p["lat"], p["lng"]] for p in updates["polygon_points"]]
+            coordinates_json = json.dumps(coordinates)
+            update_fields.append("polygon_coordinates = ?")
+            update_values.append(coordinates_json)
+
+        if "new_password" in updates and updates["new_password"]:
+            # Handle password change
+            if updates["new_password"] == "auto":
+                new_password = self.generate_password()
+            else:
+                new_password = updates["new_password"]
+            password_hash = self.hash_password(new_password)
+            update_fields.append("password_hash = ?")
+            update_values.append(password_hash)
+
+        if not update_fields:
+            return None
+
+        # Add updated_at
+        update_fields.append("updated_at = ?")
+        update_values.append(datetime.now().isoformat())
+
+        # Add institute_id to WHERE clause
+        update_values.append(institute_id)
+
+        query = f"UPDATE institutes SET {', '.join(update_fields)} WHERE institute_id = ?"
+
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(query, update_values)
+            await db.commit()
+
+        # Return new credentials if password was changed
+        if new_password:
+            login_url = os.environ.get("FRONTEND_URL", "http://localhost:8081") + "/institute/login"
+            return GeneratedCredentials(
+                institute_id=institute_id,
+                password=new_password,
+                login_url=login_url,
+            )
+
+        return None
+
+    async def delete_institute(self, institute_id: str) -> None:
+        """Delete an institute."""
+        institute = await self.get_institute_by_id(institute_id)
+        if not institute:
+            raise ValueError("Institute not found")
+
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                "DELETE FROM institutes WHERE institute_id = ?", (institute_id,)
+            )
+            await db.commit()
+
+    async def reset_institute_password(
+        self, institute_id: str, new_password: Optional[str] = None
+    ) -> GeneratedCredentials:
+        """Reset institute password (admin operation)."""
+        institute = await self.get_institute_by_id(institute_id)
+        if not institute:
+            raise ValueError("Institute not found")
+
+        # Generate or use provided password
+        password = new_password if new_password else self.generate_password()
+        password_hash = self.hash_password(password)
+
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                """
+                UPDATE institutes
+                SET password_hash = ?, requires_password_change = 1, updated_at = ?
+                WHERE institute_id = ?
+                """,
+                (password_hash, datetime.now().isoformat(), institute_id),
+            )
+            await db.commit()
+
+        login_url = os.environ.get("FRONTEND_URL", "http://localhost:8081") + "/institute/login"
+        return GeneratedCredentials(
+            institute_id=institute_id,
+            password=password,
+            login_url=login_url,
+        )
 
     # ==================== EMAIL ====================
 

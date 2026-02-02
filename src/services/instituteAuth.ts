@@ -1,39 +1,13 @@
 /**
  * Institute Authentication Service
  *
- * Handles institute login/logout using Firestore for data storage
- * and bcryptjs for password verification.
+ * Handles institute login/logout using backend API
  */
 
-import { doc, getDoc, getDocs, updateDoc, collection, query, where, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/auth/firebase';
-import bcrypt from 'bcryptjs';
-import type { Institute, InstituteSession, InstituteLoginCredentials } from '@/types/institute';
+import type { InstituteSession, InstituteLoginCredentials } from '@/types/institute';
 
 const SESSION_KEY = 'institute_session';
-const INSTITUTES_COLLECTION = 'institutes';
-
-/**
- * Find institute document by ID field
- */
-async function findInstituteByIdField(instituteId: string): Promise<{ docId: string; data: Institute } | null> {
-  // First try direct document lookup (for backwards compatibility)
-  const directRef = doc(db, INSTITUTES_COLLECTION, instituteId);
-  const directSnap = await getDoc(directRef);
-  if (directSnap.exists()) {
-    return { docId: directSnap.id, data: directSnap.data() as Institute };
-  }
-
-  // Query by 'id' field (for admin-created institutes)
-  const q = query(collection(db, INSTITUTES_COLLECTION), where('id', '==', instituteId));
-  const querySnap = await getDocs(q);
-  if (!querySnap.empty) {
-    const doc = querySnap.docs[0];
-    return { docId: doc.id, data: doc.data() as Institute };
-  }
-
-  return null;
-}
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * Authenticate institute with ID and password
@@ -41,28 +15,34 @@ async function findInstituteByIdField(instituteId: string): Promise<{ docId: str
 export async function loginInstitute(credentials: InstituteLoginCredentials): Promise<InstituteSession> {
   const { id, password } = credentials;
 
-  // Find institute by ID
-  const result = await findInstituteByIdField(id);
+  const response = await fetch(`${API_BASE_URL}/api/admin/institutes/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      institute_id: id,
+      password,
+    }),
+  });
 
-  if (!result) {
-    throw new Error('Invalid institute ID or password');
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Invalid institute ID or password');
   }
 
-  const { data: instituteData } = result;
-
-  // Verify password
-  const isValid = await bcrypt.compare(password, instituteData.password_hash);
-  if (!isValid) {
-    throw new Error('Invalid institute ID or password');
-  }
+  const result = await response.json();
 
   // Create session
   const session: InstituteSession = {
-    instituteId: id,
-    instituteName: instituteData.name,
-    polygon: instituteData.polygon,
+    instituteId: result.institute_id,
+    instituteName: result.name,
+    polygon: {
+      type: 'Polygon',
+      coordinates: result.polygon_coordinates,
+    },
     loginTime: Date.now(),
-    requiresPasswordChange: instituteData.requiresPasswordChange || false,
+    requiresPasswordChange: result.requires_password_change || false,
   };
 
   // Store session in sessionStorage
@@ -100,14 +80,6 @@ export function logoutInstitute(): void {
 }
 
 /**
- * Utility: Hash a password (for admin use when creating institutes)
- */
-export async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
-}
-
-/**
  * Change institute password
  */
 export async function changeInstitutePassword(
@@ -115,35 +87,22 @@ export async function changeInstitutePassword(
   currentPassword: string,
   newPassword: string
 ): Promise<void> {
-  // Find institute
-  const result = await findInstituteByIdField(instituteId);
-  if (!result) {
-    throw new Error('Institute not found');
-  }
-
-  const { docId, data: instituteData } = result;
-
-  // Verify current password
-  const isValid = await bcrypt.compare(currentPassword, instituteData.password_hash);
-  if (!isValid) {
-    throw new Error('Current password is incorrect');
-  }
-
   // Validate new password
   if (newPassword.length < 8) {
     throw new Error('New password must be at least 8 characters');
   }
 
-  // Hash new password
-  const newHash = await hashPassword(newPassword);
+  const response = await fetch(
+    `${API_BASE_URL}/api/admin/institutes/change-password?institute_id=${encodeURIComponent(instituteId)}&current_password=${encodeURIComponent(currentPassword)}&new_password=${encodeURIComponent(newPassword)}`,
+    {
+      method: 'POST',
+    }
+  );
 
-  // Update password and clear requiresPasswordChange flag
-  const instituteRef = doc(db, INSTITUTES_COLLECTION, docId);
-  await updateDoc(instituteRef, {
-    password_hash: newHash,
-    requiresPasswordChange: false,
-    updated_at: serverTimestamp(),
-  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to change password');
+  }
 
   // Update session to clear password change requirement
   const session = getInstituteSession();
@@ -157,16 +116,6 @@ export async function changeInstitutePassword(
  * Clear password change requirement (after successful change)
  */
 export async function clearPasswordChangeRequired(instituteId: string): Promise<void> {
-  const result = await findInstituteByIdField(instituteId);
-  if (!result) return;
-
-  const { docId } = result;
-  const instituteRef = doc(db, INSTITUTES_COLLECTION, docId);
-  await updateDoc(instituteRef, {
-    requiresPasswordChange: false,
-    updated_at: serverTimestamp(),
-  });
-
   // Update session
   const session = getInstituteSession();
   if (session && session.instituteId === instituteId) {

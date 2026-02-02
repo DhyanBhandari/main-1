@@ -7,7 +7,7 @@
  * 3. Show generated credentials
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -18,6 +18,7 @@ import {
   Loader2,
   CheckCircle,
   Plus,
+  Key,
 } from 'lucide-react';
 import PolygonLandSelector from '@/components/PolygonLandSelector';
 import CredentialsDisplay from './CredentialsDisplay';
@@ -83,6 +84,8 @@ interface FormData {
   email: string;
   countryCode: string;
   phoneNumber: string;
+  passwordMode: 'auto' | 'custom';
+  customPassword: string;
 }
 
 export function CreateOrganizationModal({
@@ -98,12 +101,26 @@ export function CreateOrganizationModal({
     email: '',
     countryCode: '+91',
     phoneNumber: '',
+    passwordMode: 'auto',
+    customPassword: '',
   });
   const [credentials, setCredentials] = useState<GeneratedCredentials | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll position when modal opens or step changes
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.scrollTop = 0;
+        }
+      }, 0);
+    }
+  }, [isOpen, step]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -134,6 +151,10 @@ export function CreateOrganizationModal({
       setError('Phone number is required');
       return false;
     }
+    if (formData.passwordMode === 'custom' && !formData.customPassword.trim()) {
+      setError('Please enter a custom password or select auto-generate');
+      return false;
+    }
     return true;
   };
 
@@ -149,6 +170,7 @@ export function CreateOrganizationModal({
     setError(null);
 
     try {
+      const password = formData.passwordMode === 'auto' ? undefined : formData.customPassword;
       const creds = await createInstituteDirect(
         {
           organizationName: formData.organizationName,
@@ -157,6 +179,7 @@ export function CreateOrganizationModal({
           countryCode: formData.countryCode,
           phoneNumber: formData.phoneNumber,
           polygonPoints: points,
+          password: password,
         },
         adminEmail
       );
@@ -186,6 +209,8 @@ export function CreateOrganizationModal({
       email: '',
       countryCode: '+91',
       phoneNumber: '',
+      passwordMode: 'auto',
+      customPassword: '',
     });
     setCredentials(null);
     setError(null);
@@ -209,6 +234,7 @@ export function CreateOrganizationModal({
         onClick={handleClose}
       >
         <motion.div
+          ref={modalRef}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -358,6 +384,59 @@ export function CreateOrganizationModal({
                       placeholder="Phone number"
                       className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                     />
+                  </div>
+                </div>
+
+                {/* Password Options */}
+                <div className="pt-6 border-t border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <Key className="w-4 h-4" />
+                    Password Generation <span className="text-red-500">*</span>
+                  </label>
+                  <div className="space-y-3">
+                    <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50 ${formData.passwordMode === 'auto' ? 'border-green-500 bg-green-50' : 'border-gray-300'}">
+                      <input
+                        type="radio"
+                        name="passwordMode"
+                        value="auto"
+                        checked={formData.passwordMode === 'auto'}
+                        onChange={(e) => setFormData({ ...formData, passwordMode: 'auto' })}
+                        className="mt-1 w-4 h-4 text-green-600"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">Auto-Generate Password (Recommended)</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          System will create a secure random password that will be displayed after creation
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50 ${formData.passwordMode === 'custom' ? 'border-green-500 bg-green-50' : 'border-gray-300'}">
+                      <input
+                        type="radio"
+                        name="passwordMode"
+                        value="custom"
+                        checked={formData.passwordMode === 'custom'}
+                        onChange={(e) => setFormData({ ...formData, passwordMode: 'custom' })}
+                        className="mt-1 w-4 h-4 text-green-600"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">Set Custom Password</p>
+                        <p className="text-sm text-gray-600 mt-1 mb-2">
+                          Enter a specific password for this organization
+                        </p>
+                        {formData.passwordMode === 'custom' && (
+                          <input
+                            type="text"
+                            value={formData.customPassword}
+                            onChange={(e) => setFormData({ ...formData, customPassword: e.target.value })}
+                            placeholder="Enter password"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            required={formData.passwordMode === 'custom'}
+                          />
+                        )}
+                      </div>
+                    </label>
                   </div>
                 </div>
 

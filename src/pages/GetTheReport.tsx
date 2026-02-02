@@ -769,7 +769,7 @@ const GetTheReport = () => {
               transition={{ delay: 0.6 }}
             >
               <h2 className="text-2xl sm:text-3xl font-bold text-center text-white mb-8">
-                Land Parcel Valuation
+                Natural Capital Value Assessment
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">

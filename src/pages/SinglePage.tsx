@@ -58,9 +58,7 @@ import groupPhotoImg from "@/assets/new/Group-Photo.jpg";
 // Team Member Images
 import ramachandranImg from "@/assets/new/Ramachandran.png";
 import vivekaImg from "@/assets/new/viveka.png";
-import pravinImg from "@/assets/new/Pravin-kumar.png";
 import rajarajanImg from "@/assets/new/Rajarajan.png";
-import arunImg from "@/assets/new/Arun-prakash.png";
 
 /**
  * Technology Section Cards Data
@@ -116,27 +114,15 @@ const solutionsCards = [
 
 /**
  * Team Members Data
- * Advisory Board, Mentors & Team
- * Row 1: CEO, Viveka, Impact Officer (3 cards)
- * Row 2: Rajarajan, Arun (2 cards centered)
+ * Advisory and Team
+ * Structure: ADVISORS first (2 cards), then TEAM (2 cards)
  */
-const teamMembersRow1 = [
-  {
-    name: "Ramachandran KP",
-    role: "Founder @ ErthaLoka",
-    image: ramachandranImg,
-    details: [
-      "Founder - Travellers Tribe & Learning Expedition",
-      "Co-Founder @ Dream Holidays",
-      "TOP 400 Ideas (2016) - IIMA",
-      "TOP 50 Ideas (2016) - IIMC",
-      "Pre-Incubated (2018) @ IIMB - NSRCEL",
-      "Ex-Accenture, Tesco & C-Cubed Solutions",
-    ],
-  },
+
+// Advisors: People guiding our strategic direction
+const advisorsData = [
   {
     name: "Dr. Viveka Kalidasan, Ph.D",
-    role: "Mentor/Advisor",
+    role: "Advisor",
     image: vivekaImg,
     details: [
       "Founder-CEO | River Venture Studio Global",
@@ -148,20 +134,6 @@ const teamMembersRow1 = [
     ],
   },
   {
-    name: "Pravin Kumar",
-    role: "Impact Officer @ ErthaLoka",
-    image: pravinImg,
-    details: [
-      "MSW (Gold Medalist)",
-      "Founder at Green Shadows & Annapradokshana Charitable Trust",
-      "Recipient of the Changemaker Award from TYCL",
-      "50000 native trees planted and 12 urban forest projects created in Pondicherry and Tamilnadu",
-    ],
-  },
-];
-
-const teamMembersRow2 = [
-  {
     name: "Rajarajan Rathinavelu",
     role: "Advisor",
     image: rajarajanImg,
@@ -172,15 +144,31 @@ const teamMembersRow2 = [
       "Hochschule Flensburg: Masters - Wind Energy Engineering",
     ],
   },
+];
+
+// Team: Core team members building the platform
+const teamData = [
   {
-    name: "Arun Prakash Ambathy",
-    role: "Advisor",
-    image: arunImg,
+    name: "Ramachandran KP",
+    role: "Founder",
+    image: ramachandranImg,
     details: [
-      "Resource Person: Auroville Forest Group & Auroville Centre for Scientific Research",
-      "Special Forces Veteran - Indian Army",
-      "Founder @ Ambathy Nature Research Foundation",
-      "Spear Heading projects Ecological Planning & Assessments",
+      "Founder - Travellers Tribe & Learning Expedition",
+      "Co-Founder @ Dream Holidays",
+      "TOP 400 Ideas (2016) - IIMA",
+      "TOP 50 Ideas (2016) - IIMC",
+      "Pre-Incubated (2018) @ IIMB - NSRCEL",
+      "Ex-Accenture, Tesco & C-Cubed Solutions",
+    ],
+  },
+  {
+    name: "Surya Prakash",
+    role: "CTO @ ErthaLoka",
+    image: null, // Placeholder - will show first letter
+    details: [
+      "B.Tech - Dayanand Sagar College of Engineering",
+      "5+ years experience in Blockchain | Design | Web development",
+      "Cloud Infra | AR & VR | DevOps | AI",
     ],
   },
 ];
@@ -290,8 +278,8 @@ const SinglePage = () => {
                   </span>
                 </motion.h1>
 
-                {/* Sub-title - Bold, same color as heading */}
-                <motion.p
+                {/* Sub-title - Bold, same color as heading
+                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
@@ -299,6 +287,9 @@ const SinglePage = () => {
                 >
                   Measuring, managing, and pricing planetary performance - so preservation becomes profitable.
                 </motion.p>
+                  
+                */}
+               
 
                 {/* Tagline */}
                 <motion.p
@@ -315,11 +306,12 @@ const SinglePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
                 >
+                  {/* NEW FLOW: Opens SignUpModal instead of PHIModal */}
                   <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => setIsSignUpModalOpen(true)}
                     className="h-12 md:h-14 px-8 md:px-10 rounded-full bg-[#0D2821] hover:bg-[#065f46] text-white shadow-[0_0_20px_-5px_rgba(22,163,74,0.4)] hover:shadow-[0_0_25px_-5px_rgba(22,163,74,0.6)] hover:scale-105 transition-all duration-300 text-base md:text-lg font-medium"
                   >
-                    Get your Natural Capital Value
+                    Watch the Demo
                   </button>
                 </motion.div>
               </div>
@@ -411,11 +403,12 @@ const SinglePage = () => {
         </section>
 
         {/* ==========================================
-            SECTION 4: CTA - Natural Capital Value
-            Primary call-to-action button
-            Opens PHIModal for user interaction
+            SECTION 4: CTA - Natural Capital Value (OLD FLOW - COMMENTED OUT)
+            This button was showing below Live-Monitoring system
+            OLD: Opened PHIModal for location-based assessment
+            NEW: First hero button now opens SignUpModal → Video
             ========================================== */}
-        <section className="py-20 relative">
+        {/* <section className="py-20 relative">
 
           <div className="container px-6 mx-auto relative z-10">
             <div className="max-w-4xl mx-auto text-center">
@@ -429,7 +422,7 @@ const SinglePage = () => {
               </button>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* ==========================================
             SECTION 5: SOLUTIONS
@@ -482,8 +475,11 @@ const SinglePage = () => {
               ))}
             </div>
 
-            {/* Sign Up Now Button */}
-            <motion.div
+            {/* Sign Up Now Button (OLD FLOW - COMMENTED OUT)
+                OLD: This button opened SignUpModal in Solutions section
+                NEW: Hero "Get your Natural Capital Value" button now opens SignUpModal
+            */}
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -496,7 +492,7 @@ const SinglePage = () => {
               >
                 Sign Up Now
               </button>
-            </motion.div>
+            </motion.div> */}
           </div>
         </section>
 
@@ -587,7 +583,7 @@ const SinglePage = () => {
               </motion.div>
             </div>
 
-            {/* Advisory Board, Mentors & Team Section */}
+            {/* Advisory and Team Section */}
             <div className="mb-20">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -596,111 +592,133 @@ const SinglePage = () => {
                 viewport={{ once: true }}
                 className="text-center mb-12"
               >
-                <h3 className="text-3xl md:text-4xl font-bold mb-4">Advisory Board, Mentors & Team</h3>
+                <h3 className="text-3xl md:text-4xl font-bold mb-4">Advisory and Team</h3>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                   The experts driving our planetary mission forward
                 </p>
               </motion.div>
 
-              {/* Team Grid - Row 1: 3 cards */}
-              <div className="flex flex-wrap justify-evenly gap-y-4 mb-4">
-                {teamMembersRow1.map((member, index) => (
-                  <motion.div
-                    key={member.name}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    className="bg-[#0D2821] rounded-xl overflow-hidden text-white w-[230px]"
-                  >
-                    {/* Image Section */}
-                    <div className="h-[240px] bg-[#1a3d33] relative overflow-hidden">
-                      {member.image ? (
-                        <img
-                          src={member.image}
-                          alt={member.name}
-                          className="w-full h-full object-cover object-top"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0D2821] to-[#1a4a3d]">
-                          <span className="text-5xl font-bold text-white/20">
-                            {member.name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+              {/* ADVISORS Section */}
+              <div className="mb-12">
+                <motion.h4
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true }}
+                  className="text-2xl font-bold text-center mb-6 text-[#0D2821]"
+                >
+                  ADVISORS
+                </motion.h4>
+                <div className="flex flex-wrap justify-center gap-12">
+                  {advisorsData.map((member, index) => (
+                    <motion.div
+                      key={member.name}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      className="bg-[#0D2821] rounded-xl overflow-hidden text-white w-[230px]"
+                    >
+                      {/* Image Section */}
+                      <div className="h-[240px] bg-[#1a3d33] relative overflow-hidden">
+                        {member.image ? (
+                          <img
+                            src={member.image}
+                            alt={member.name}
+                            className="w-full h-full object-cover object-top"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0D2821] to-[#1a4a3d]">
+                            <span className="text-5xl font-bold text-white/20">
+                              {member.name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Text Section */}
-                    <div className="p-3">
-                      <h4 className="text-sm font-bold text-amber-400 mb-0.5">
-                        {member.name}
-                      </h4>
-                      <p className="text-green-400 font-semibold text-[10px] mb-1.5">
-                        {member.role}
-                      </p>
-                      <ul className="space-y-0.5">
-                        {member.details.map((detail, idx) => (
-                          <li key={idx} className="text-[9px] text-gray-300 leading-tight">
-                            • {detail}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </motion.div>
-                ))}
+                      {/* Text Section */}
+                      <div className="p-3">
+                        <h4 className="text-sm font-bold text-amber-400 mb-0.5">
+                          {member.name}
+                        </h4>
+                        <p className="text-green-400 font-semibold text-[10px] mb-1.5">
+                          {member.role}
+                        </p>
+                        <ul className="space-y-0.5">
+                          {member.details.map((detail, idx) => (
+                            <li key={idx} className="text-[9px] text-gray-300 leading-tight">
+                              • {detail}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
 
-              {/* Team Grid - Row 2: 2 cards centered */}
-              <div className="flex flex-wrap justify-evenly gap-y-4 max-w-2xl mx-auto">
-                {teamMembersRow2.map((member, index) => (
-                  <motion.div
-                    key={member.name}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                    viewport={{ once: true }}
-                    className="bg-[#0D2821] rounded-xl overflow-hidden text-white w-[230px]"
-                  >
-                    {/* Image Section */}
-                    <div className="h-[240px] bg-[#1a3d33] relative overflow-hidden">
-                      {member.image ? (
-                        <img
-                          src={member.image}
-                          alt={member.name}
-                          className="w-full h-full object-cover object-top"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0D2821] to-[#1a4a3d]">
-                          <span className="text-5xl font-bold text-white/20">
-                            {member.name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+              {/* TEAM Section */}
+              <div>
+                <motion.h4
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true }}
+                  className="text-2xl font-bold text-center mb-6 text-[#0D2821]"
+                >
+                  TEAM
+                </motion.h4>
+                <div className="flex flex-wrap justify-center gap-12">
+                  {teamData.map((member, index) => (
+                    <motion.div
+                      key={member.name}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      className="bg-[#0D2821] rounded-xl overflow-hidden text-white w-[230px]"
+                    >
+                      {/* Image Section */}
+                      <div className="h-[240px] bg-[#1a3d33] relative overflow-hidden">
+                        {member.image ? (
+                          <img
+                            src={member.image}
+                            alt={member.name}
+                            className="w-full h-full object-cover object-top"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0D2821] to-[#1a4a3d]">
+                            <span className="text-5xl font-bold text-white/20">
+                              {member.name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Text Section */}
-                    <div className="p-3">
-                      <h4 className="text-sm font-bold text-amber-400 mb-0.5">
-                        {member.name}
-                      </h4>
-                      <p className="text-green-400 font-semibold text-[10px] mb-1.5">
-                        {member.role}
-                      </p>
-                      <ul className="space-y-0.5">
-                        {member.details.map((detail, idx) => (
-                          <li key={idx} className="text-[9px] text-gray-300 leading-tight">
-                            • {detail}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </motion.div>
-                ))}
+                      {/* Text Section */}
+                      <div className="p-3">
+                        <h4 className="text-sm font-bold text-amber-400 mb-0.5">
+                          {member.name}
+                        </h4>
+                        <p className="text-green-400 font-semibold text-[10px] mb-1.5">
+                          {member.role}
+                        </p>
+                        <ul className="space-y-0.5">
+                          {member.details.map((detail, idx) => (
+                            <li key={idx} className="text-[9px] text-gray-300 leading-tight">
+                              • {detail}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Impact Flywheel Section */}
-            <motion.div
+            {/* Impact Flywheel Section - COMMENTED OUT */}
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -711,12 +729,10 @@ const SinglePage = () => {
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Planetary health and financial health become one continuous equation.
               </p>
-            </motion.div>
+            </motion.div> */}
 
-            {/* Impact Flywheel Cards - Planet, People, Profit */}
-            <div className="grid md:grid-cols-3 gap-8">
-
-              {/* PLANET Card */}
+            {/* Impact Flywheel Cards - Planet, People, Profit - COMMENTED OUT */}
+            {/* <div className="grid md:grid-cols-3 gap-8">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -741,7 +757,6 @@ const SinglePage = () => {
                 </ul>
               </motion.div>
 
-              {/* PEOPLE Card */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -766,7 +781,6 @@ const SinglePage = () => {
                 </ul>
               </motion.div>
 
-              {/* PROFIT Card */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -790,7 +804,7 @@ const SinglePage = () => {
                   </li>
                 </ul>
               </motion.div>
-            </div>
+            </div> */}
           </div>
         </section>
 

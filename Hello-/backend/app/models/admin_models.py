@@ -59,6 +59,7 @@ class InstituteCreate(BaseModel):
     country_code: str
     phone_number: str
     polygon_points: List[PolygonPoint]
+    password: Optional[str] = None  # None = auto-generate, or custom password
 
 
 class Institute(BaseModel):
@@ -82,6 +83,7 @@ class ApproveRequestData(BaseModel):
     request_id: int
     polygon_points: List[PolygonPoint]
     admin_email: str
+    password: Optional[str] = None  # None = auto-generate, or custom password
 
 
 class RejectRequestData(BaseModel):
@@ -111,3 +113,19 @@ class EmailData(BaseModel):
     institute_id: str
     password: str
     login_url: str
+
+
+class InstituteUpdate(BaseModel):
+    """Data for updating institute details."""
+    organization_name: Optional[str] = None
+    organization_type: Optional[str] = None
+    email: Optional[EmailStr] = None
+    country_code: Optional[str] = None
+    phone_number: Optional[str] = None
+    polygon_points: Optional[List[PolygonPoint]] = None
+    new_password: Optional[str] = None  # None = no change, "auto" = generate, or custom value
+
+
+class PasswordReset(BaseModel):
+    """Reset institute password."""
+    password: Optional[str] = None  # None = auto-generate, or custom value

@@ -76,7 +76,8 @@ export async function getAllRequests(): Promise<AccessRequest[]> {
 export async function approveRequest(
   requestId: number,
   polygonPoints: PolygonPoint[],
-  adminEmail: string
+  adminEmail: string,
+  password?: string // Optional: if not provided, auto-generates
 ): Promise<GeneratedCredentials> {
   const response = await fetch(`${API_BASE_URL}/api/admin/requests/approve`, {
     method: 'POST',
@@ -87,6 +88,7 @@ export async function approveRequest(
       request_id: requestId,
       polygon_points: polygonPoints,
       admin_email: adminEmail,
+      password: password || null,
     }),
   });
 
@@ -139,6 +141,7 @@ export async function createInstituteDirect(
     countryCode: string;
     phoneNumber: string;
     polygonPoints: PolygonPoint[];
+    password?: string; // Optional: if not provided, auto-generates
   },
   adminEmail: string
 ): Promise<GeneratedCredentials> {
@@ -156,6 +159,7 @@ export async function createInstituteDirect(
         country_code: data.countryCode,
         phone_number: data.phoneNumber,
         polygon_points: data.polygonPoints,
+        password: data.password || null,
       }),
     }
   );
@@ -300,6 +304,119 @@ export async function getAdminStats(): Promise<{
     rejectedRequests: result.rejected_requests,
     totalInstitutes: result.total_institutes,
   };
+}
+
+/**
+ * Delete institute
+ */
+export async function deleteInstitute(instituteId: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/institutes/${encodeURIComponent(instituteId)}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to delete institute');
+  }
+}
+
+/**
+ * Update institute details
+ */
+export async function updateInstitute(
+  instituteId: string,
+  updates: {
+    organizationName?: string;
+    organizationType?: string;
+    email?: string;
+    countryCode?: string;
+    phoneNumber?: string;
+    polygonPoints?: PolygonPoint[];
+    newPassword?: string; // "auto" for auto-generate, or custom password
+  }
+): Promise<GeneratedCredentials | null> {
+  const body: any = {};
+
+  if (updates.organizationName) body.organization_name = updates.organizationName;
+  if (updates.organizationType) body.organization_type = updates.organizationType;
+  if (updates.email) body.email = updates.email;
+  if (updates.countryCode) body.country_code = updates.countryCode;
+  if (updates.phoneNumber) body.phone_number = updates.phoneNumber;
+  if (updates.polygonPoints) body.polygon_points = updates.polygonPoints;
+  if (updates.newPassword) body.new_password = updates.newPassword;
+
+  const response = await fetch(`${API_BASE_URL}/api/admin/institutes/${encodeURIComponent(instituteId)}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to update institute');
+  }
+
+  const result = await response.json();
+
+  // If password was changed, return new credentials
+  if (result.credentials) {
+    return {
+      instituteId: result.credentials.institute_id,
+      password: result.credentials.password,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Reset institute password
+ */
+export async function resetInstitutePassword(
+  instituteId: string,
+  password?: string // "auto" for auto-generate, or custom password, undefined for auto
+): Promise<GeneratedCredentials> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/admin/institutes/${encodeURIComponent(instituteId)}/reset-password`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        password: password || null,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to reset password');
+  }
+
+  const result = await response.json();
+  return {
+    instituteId: result.institute_id,
+    password: result.password,
+  };
+}
+
+/**
+ * Get dashboard preview data for admin
+ */
+export async function getDashboardPreview(instituteId: string): Promise<any> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/admin/institutes/${encodeURIComponent(instituteId)}/dashboard-data`
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch dashboard data');
+  }
+
+  return response.json();
 }
 
 // ==================== Helper Functions ====================

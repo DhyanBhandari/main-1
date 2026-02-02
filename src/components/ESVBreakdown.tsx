@@ -402,12 +402,12 @@ export const ESVBreakdown = ({
             <span className="text-blue-600 font-medium">Ecosystem Type:</span>{' '}
             {esv.ecosystemType}
           </p>
-          <p className="mt-1">
+         {/* <p className="mt-1">
             <span className="text-blue-600 font-medium">Regional Factor:</span>{' '}
             {(esv.regionalFactor * 100).toFixed(0)}% (India adjusted)
-          </p>
+          </p>  */} 
           <p className="mt-1">
-            <span className="text-blue-600 font-medium">Baseline Value:</span>{' '}
+            <span className="text-blue-600 font-medium">Baseline Natural Capital Value:  </span>{' '}
             ${esv.baselineValue.toLocaleString()}/ha/year
           </p>
           <p className="mt-2 text-gray-500 italic">

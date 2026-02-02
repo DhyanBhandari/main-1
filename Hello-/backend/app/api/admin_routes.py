@@ -18,6 +18,8 @@ Endpoints:
 
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Dict, Any
+import json
+import os
 
 from app.models.admin_models import (
     AccessRequestCreate,
@@ -28,6 +30,8 @@ from app.models.admin_models import (
     GeneratedCredentials,
     InstituteLogin,
     EmailData,
+    InstituteUpdate,
+    PasswordReset,
 )
 from app.services.admin_service import get_admin_service, AdminService
 
@@ -179,6 +183,120 @@ async def get_institute(
     if not institute:
         raise HTTPException(status_code=404, detail="Institute not found")
     return institute
+
+
+@router.put("/institutes/{institute_id}")
+async def update_institute(
+    institute_id: str,
+    update_data: InstituteUpdate,
+    service: AdminService = Depends(get_service),
+):
+    """Update institute details."""
+    try:
+        # Convert Pydantic model to dict, excluding None values
+        updates = update_data.dict(exclude_none=True)
+        credentials = await service.update_institute(institute_id, updates)
+
+        if credentials:
+            return {
+                "success": True,
+                "message": "Institute updated successfully",
+                "credentials": credentials.dict()
+            }
+        else:
+            return {
+                "success": True,
+                "message": "Institute updated successfully"
+            }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/institutes/{institute_id}")
+async def delete_institute(
+    institute_id: str,
+    service: AdminService = Depends(get_service),
+):
+    """Delete an institute."""
+    try:
+        await service.delete_institute(institute_id)
+        return {"success": True, "message": "Institute deleted successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/institutes/{institute_id}/reset-password", response_model=GeneratedCredentials)
+async def reset_password(
+    institute_id: str,
+    reset_data: PasswordReset,
+    service: AdminService = Depends(get_service),
+):
+    """Reset institute password (admin operation)."""
+    try:
+        credentials = await service.reset_institute_password(
+            institute_id,
+            reset_data.password
+        )
+        return credentials
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/institutes/{institute_id}/dashboard-data")
+async def get_dashboard_preview(
+    institute_id: str,
+    service: AdminService = Depends(get_service),
+):
+    """
+    Get dashboard data for admin preview.
+
+    Returns the same format as /api/query/polygon endpoint so it can be used
+    with the DashboardTemplate component.
+    """
+    try:
+        import httpx
+
+        # Get institute details
+        institute = await service.get_institute_by_id(institute_id)
+        if not institute:
+            raise HTTPException(status_code=404, detail="Institute not found")
+
+        # Parse polygon coordinates
+        coordinates = json.loads(institute["polygon_coordinates"]) if isinstance(institute["polygon_coordinates"], str) else institute["polygon_coordinates"]
+
+        # Format as polygon query points
+        points = [
+            {"lat": coord[0], "lng": coord[1], "label": f"P{idx+1}"}
+            for idx, coord in enumerate(coordinates)
+        ]
+
+        # Call the polygon query endpoint
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            api_url = os.environ.get("PHI_API_URL", "http://127.0.0.1:8000")
+            response = await client.post(
+                f"{api_url}/api/query/polygon",
+                json={
+                    "points": points,
+                    "mode": "comprehensive",
+                    "include_scores": True,
+                    "user_id": institute_id,
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=503, detail=f"Failed to fetch dashboard data: {str(e)}")
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==================== INSTITUTE AUTH ENDPOINTS ====================

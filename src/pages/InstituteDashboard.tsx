@@ -50,7 +50,6 @@ const METRIC_CONFIG: Record<string, { label: string; unit: string; description: 
   wind_speed: { label: "Wind Speed", unit: "km/h", description: "Wind velocity", icon: Wind, min: 0, max: 100 },
   uv_index: { label: "UV Index", unit: "index", description: "Ultraviolet radiation level", icon: Sun, min: 0, max: 11 },
   aqi: { label: "Air Quality Index", unit: "US AQI", description: "Overall air quality", icon: Activity, min: 0, max: 500 },
-  pm2_5: { label: "PM2.5", unit: "μg/m³", description: "Fine particulate matter", icon: Cloud, min: 0, max: 500 },
 
   // Pillar B - Biodiversity
   ndvi: { label: "NDVI", unit: "", description: "Vegetation greenness", icon: Leaf, min: -1, max: 1 },
@@ -79,7 +78,7 @@ const METRIC_CONFIG: Record<string, { label: string; unit: string; description: 
   elevation: { label: "Elevation", unit: "m", description: "Height above sea level", icon: Mountain, min: -100, max: 5000 },
 };
 
-const SECTION_IDS = ["overview", "A", "B", "C", "D", "E"];
+const SECTION_IDS = ["overview", "live", "A", "B", "C", "D", "E"];
 
 const InstituteDashboard = () => {
   const navigate = useNavigate();
@@ -173,6 +172,7 @@ const InstituteDashboard = () => {
 
       if (data.success && data.data) {
         const d = data.data;
+
         setSatellite({
           overall_score: d.summary?.overall_score || 0,
           overall_interpretation: d.summary?.overall_interpretation || "Unknown",
@@ -286,7 +286,7 @@ const InstituteDashboard = () => {
 
   const getPillarMetricKeys = (pillarKey: string) => {
     const metricsByPillar: Record<string, string[]> = {
-      A: ["aod", "visibility"],
+      A: ["aod", "visibility", "temperature", "humidity", "cloud_cover", "pressure", "wind_speed", "uv_index", "aqi"],
       B: ["ndvi", "evi", "lai", "fpar", "land_cover"],
       C: ["tree_cover", "forest_loss", "canopy_height", "biomass", "carbon_stock"],
       D: ["lst", "soil_moisture", "water_occurrence", "drought_index"],
@@ -616,6 +616,147 @@ const InstituteDashboard = () => {
                       </div>
                     </div>
                   </div>
+                </section>
+
+                {/* Live Data Section - Matches Homepage */}
+                <section
+                  ref={(el) => (sectionRefs.current["live"] = el)}
+                  className="mb-8 scroll-mt-20"
+                >
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                      <h2 className="text-xl font-bold text-gray-900">Live Data</h2>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Real-time • Updates every 5 min</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      {/* Weather Card */}
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
+                                <Thermometer className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <span className="font-semibold text-gray-800">Weather</span>
+                                <div className="text-xs text-gray-500">Real-time data</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-3xl font-bold text-gray-900">
+                                {getPillarMetrics('A').temperature?.value?.toFixed(1) || '--'}°
+                              </div>
+                              <div className="text-xs text-gray-500">Clear sky</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-3 sm:p-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                            <div className="text-center p-2 bg-blue-50 rounded-lg">
+                              <Droplets className="w-4 h-4 mx-auto text-blue-500 mb-1" />
+                              <div className="text-lg font-bold text-gray-900">
+                                {getPillarMetrics('A').humidity?.value?.toFixed(0) || '--'}%
+                              </div>
+                              <div className="text-xs text-gray-500">Humidity</div>
+                            </div>
+                            <div className="text-center p-2 bg-teal-50 rounded-lg">
+                              <Wind className="w-4 h-4 mx-auto text-teal-500 mb-1" />
+                              <div className="text-lg font-bold text-gray-900">
+                                {getPillarMetrics('A').wind_speed?.value?.toFixed(1) || '--'}
+                              </div>
+                              <div className="text-xs text-gray-500">Wind km/h</div>
+                            </div>
+                            <div className="text-center p-2 bg-purple-50 rounded-lg">
+                              <Gauge className="w-4 h-4 mx-auto text-purple-500 mb-1" />
+                              <div className="text-lg font-bold text-gray-900">
+                                {getPillarMetrics('A').pressure?.value?.toFixed(0) || '--'}
+                              </div>
+                              <div className="text-xs text-gray-500">hPa</div>
+                            </div>
+                            <div className="text-center p-2 bg-yellow-50 rounded-lg">
+                              <Sun className="w-4 h-4 mx-auto text-yellow-500 mb-1" />
+                              <div className="text-lg font-bold text-gray-900">
+                                {getPillarMetrics('A').uv_index?.value?.toFixed(1) || '--'}
+                              </div>
+                              <div className="text-xs text-gray-500">UV Index</div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      {/* Air Quality Card */}
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center">
+                                <Activity className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <span className="font-semibold text-gray-800">Air Quality</span>
+                                <div className="text-xs text-gray-500">Real-time monitoring</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-3xl font-bold ${
+                                (getPillarMetrics('A').aqi?.value || 0) <= 50 ? 'text-green-500' :
+                                (getPillarMetrics('A').aqi?.value || 0) <= 100 ? 'text-yellow-500' : 'text-red-500'
+                              }`}>
+                                {getPillarMetrics('A').aqi?.value?.toFixed(0) || '--'}
+                              </div>
+                              <div className="text-xs text-gray-500 capitalize">
+                                {(getPillarMetrics('A').aqi?.value || 0) <= 50 ? 'Good' :
+                                 (getPillarMetrics('A').aqi?.value || 0) <= 100 ? 'Moderate' : 'Unhealthy'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-3 sm:p-4">
+                          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                            <div className="text-center p-2 bg-blue-50 rounded-lg">
+                              <Eye className="w-4 h-4 mx-auto text-blue-500 mb-1" />
+                              <div className="text-sm font-bold text-gray-900">
+                                {getPillarMetrics('A').visibility?.value?.toFixed(1) || '--'}
+                              </div>
+                              <div className="text-xs text-gray-500">Visibility km</div>
+                            </div>
+                            <div className="text-center p-2 bg-purple-50 rounded-lg">
+                              <Cloud className="w-4 h-4 mx-auto text-purple-500 mb-1" />
+                              <div className="text-sm font-bold text-gray-900">
+                                {getPillarMetrics('A').aod?.value?.toFixed(3) || '--'}
+                              </div>
+                              <div className="text-xs text-gray-500">AOD</div>
+                            </div>
+                            <div className="text-center p-2 bg-yellow-50 rounded-lg">
+                              <Sun className="w-4 h-4 mx-auto text-yellow-500 mb-1" />
+                              <div className="text-sm font-bold text-gray-900">
+                                {getPillarMetrics('A').uv_index?.value?.toFixed(1) || '--'}
+                              </div>
+                              <div className="text-xs text-gray-500">UV Index</div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </motion.div>
                 </section>
 
                 {/* Pillar Sections */}

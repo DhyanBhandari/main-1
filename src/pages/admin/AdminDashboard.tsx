@@ -4,13 +4,18 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Clock, CheckCircle, Users, Bell, Plus } from 'lucide-react';
+import { Menu, X, Clock, CheckCircle, Users, Bell, Plus, LayoutDashboard } from 'lucide-react';
 import { useAdmin } from '@/admin';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import PendingRequestsTable from '@/components/admin/PendingRequestsTable';
 import ApprovedOrganizationsTable from '@/components/admin/ApprovedOrganizationsTable';
 import NotificationPanel from '@/components/admin/NotificationPanel';
+import DashboardsTable from '@/components/admin/DashboardsTable';
+import DashboardPreviewModal from '@/components/admin/DashboardPreviewModal';
+import ShareDashboardModal from '@/components/admin/ShareDashboardModal';
+import EditDashboardModal from '@/components/admin/EditDashboardModal';
+import DeleteDashboardDialog from '@/components/admin/DeleteDashboardDialog';
 import ApproveRequestModal from '@/components/admin/ApproveRequestModal';
 import RejectRequestModal from '@/components/admin/RejectRequestModal';
 import CreateOrganizationModal from '@/components/admin/CreateOrganizationModal';
@@ -29,11 +34,11 @@ const markAllNotificationsRead = async (): Promise<void> => {};
 const subscribeToPendingCount = (_callback: (count: number) => void): (() => void) => () => {};
 const subscribeToNotifications = (_callback: (notifs: AdminNotification[]) => void): (() => void) => () => {};
 
-type TabType = 'pending' | 'approved' | 'all' | 'notifications';
+type TabType = 'pending' | 'approved' | 'all' | 'notifications' | 'dashboards';
 
 const AdminDashboard = () => {
   const { admin } = useAdmin();
-  const [activeTab, setActiveTab] = useState<TabType>('pending');
+  const [activeTab, setActiveTab] = useState<TabType>('dashboards');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -52,6 +57,13 @@ const AdminDashboard = () => {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<AccessRequest | null>(null);
+
+  // Dashboard modal states
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedInstitute, setSelectedInstitute] = useState<any>(null);
 
   // Load initial data
   useEffect(() => {
@@ -126,8 +138,30 @@ const AdminDashboard = () => {
     await markAllNotificationsRead();
   };
 
+  // Dashboard handlers
+  const handleView = (institute: any) => {
+    setSelectedInstitute(institute);
+    setViewModalOpen(true);
+  };
+
+  const handleEdit = (institute: any) => {
+    setSelectedInstitute(institute);
+    setEditModalOpen(true);
+  };
+
+  const handleShare = (institute: any) => {
+    setSelectedInstitute(institute);
+    setShareModalOpen(true);
+  };
+
+  const handleDelete = (institute: any) => {
+    setSelectedInstitute(institute);
+    setDeleteDialogOpen(true);
+  };
+
   // Mobile tabs for smaller screens
   const tabs = [
+    { id: 'dashboards' as TabType, label: 'Dashboards', icon: LayoutDashboard, count: approvedOrgs.length },
     { id: 'pending' as TabType, label: 'Pending', icon: Clock, count: pendingCount },
     { id: 'approved' as TabType, label: 'Approved', icon: CheckCircle, count: approvedOrgs.length },
     { id: 'all' as TabType, label: 'All', icon: Users },
@@ -190,12 +224,14 @@ const AdminDashboard = () => {
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
+                {activeTab === 'dashboards' && 'Dashboards'}
                 {activeTab === 'pending' && 'Pending Requests'}
                 {activeTab === 'approved' && 'Approved Organizations'}
                 {activeTab === 'all' && 'All Requests'}
                 {activeTab === 'notifications' && 'Notifications'}
               </h1>
               <p className="text-gray-500 text-sm mt-1">
+                {activeTab === 'dashboards' && 'Manage organization dashboards and credentials'}
                 {activeTab === 'pending' && 'Review and approve organization access requests'}
                 {activeTab === 'approved' && 'Organizations with active dashboard access'}
                 {activeTab === 'all' && 'View all access requests'}
@@ -220,6 +256,28 @@ const AdminDashboard = () => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
+              {activeTab === 'dashboards' && (
+                <DashboardsTable
+                  dashboards={approvedOrgs.map((org: any) => ({
+                    id: org.id,
+                    institute_id: org.id,
+                    name: org.name,
+                    organization_type: org.organizationType,
+                    email: org.email,
+                    phone: org.phone,
+                    polygon_coordinates: org.polygon?.coordinates || [],
+                    created_at: org.created_at?.toISOString() || new Date().toISOString(),
+                    updated_at: org.updated_at?.toISOString() || new Date().toISOString(),
+                    created_by: admin?.email || '',
+                  }))}
+                  loading={loading}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onShare={handleShare}
+                  onDelete={handleDelete}
+                />
+              )}
+
               {activeTab === 'pending' && (
                 <PendingRequestsTable
                   requests={pendingRequests}
@@ -283,6 +341,45 @@ const AdminDashboard = () => {
         adminEmail={admin?.email || ''}
         onClose={() => setCreateModalOpen(false)}
         onSuccess={handleApprovalSuccess}
+      />
+
+      {/* Dashboard Modals */}
+      <DashboardPreviewModal
+        isOpen={viewModalOpen}
+        institute={selectedInstitute}
+        onClose={() => {
+          setViewModalOpen(false);
+          setSelectedInstitute(null);
+        }}
+      />
+
+      <ShareDashboardModal
+        isOpen={shareModalOpen}
+        institute={selectedInstitute}
+        onClose={() => {
+          setShareModalOpen(false);
+          setSelectedInstitute(null);
+        }}
+      />
+
+      <EditDashboardModal
+        isOpen={editModalOpen}
+        institute={selectedInstitute}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedInstitute(null);
+        }}
+        onSuccess={handleApprovalSuccess}
+      />
+
+      <DeleteDashboardDialog
+        isOpen={deleteDialogOpen}
+        institute={selectedInstitute}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setSelectedInstitute(null);
+        }}
+        onConfirm={handleApprovalSuccess}
       />
     </div>
   );
