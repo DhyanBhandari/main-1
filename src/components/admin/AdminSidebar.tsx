@@ -2,9 +2,10 @@
  * AdminSidebar - Navigation sidebar for admin dashboard
  */
 
-import { Clock, CheckCircle, Users, Bell, Settings, LayoutDashboard } from 'lucide-react';
+import { Clock, CheckCircle, Users, Bell, LayoutDashboard, BarChart3, Shield } from 'lucide-react';
+import type { AdminTabPermission } from '@/types/admin';
 
-type TabType = 'pending' | 'approved' | 'all' | 'notifications' | 'dashboards';
+type TabType = 'pending' | 'approved' | 'all' | 'notifications' | 'dashboards' | 'baseline' | 'admin-management';
 
 interface AdminSidebarProps {
   activeTab: TabType;
@@ -12,6 +13,8 @@ interface AdminSidebarProps {
   pendingCount: number;
   approvedCount: number;
   unreadNotifications: number;
+  permissions: AdminTabPermission[];
+  isSuperAdmin: boolean;
 }
 
 export function AdminSidebar({
@@ -20,48 +23,87 @@ export function AdminSidebar({
   pendingCount,
   approvedCount,
   unreadNotifications,
+  permissions,
+  isSuperAdmin,
 }: AdminSidebarProps) {
-  const tabs = [
+  const allTabs: {
+    id: TabType;
+    label: string;
+    icon: typeof LayoutDashboard;
+    count?: number;
+    color: string;
+    bgColor: string;
+    permissionId?: AdminTabPermission;
+    superadminOnly?: boolean;
+  }[] = [
     {
-      id: 'dashboards' as TabType,
+      id: 'dashboards',
       label: 'Dashboards',
       icon: LayoutDashboard,
       count: approvedCount,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100',
+      permissionId: 'dashboards',
     },
     {
-      id: 'pending' as TabType,
+      id: 'pending',
       label: 'Pending Requests',
       icon: Clock,
       count: pendingCount,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100',
+      permissionId: 'pending',
     },
     {
-      id: 'approved' as TabType,
+      id: 'approved',
       label: 'Approved Organizations',
       icon: CheckCircle,
       count: approvedCount,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
+      permissionId: 'approved',
     },
     {
-      id: 'all' as TabType,
+      id: 'all',
       label: 'All Requests',
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
+      permissionId: 'all',
     },
     {
-      id: 'notifications' as TabType,
+      id: 'notifications',
       label: 'Notifications',
       icon: Bell,
       count: unreadNotifications,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
+      permissionId: 'notifications',
+    },
+    {
+      id: 'baseline',
+      label: 'Baseline Assessment',
+      icon: BarChart3,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100',
+      permissionId: 'baseline',
+    },
+    {
+      id: 'admin-management',
+      label: 'Admin Management',
+      icon: Shield,
+      color: 'text-red-600',
+      bgColor: 'bg-red-100',
+      superadminOnly: true,
     },
   ];
+
+  // Filter tabs: superadmin sees all, regular admin sees only permitted + no admin-management
+  const tabs = allTabs.filter((tab) => {
+    if (tab.superadminOnly) return isSuperAdmin;
+    if (isSuperAdmin) return true;
+    return tab.permissionId && permissions.includes(tab.permissionId);
+  });
 
   return (
     <aside className="hidden lg:flex fixed top-16 left-0 bottom-0 w-64 border-r border-gray-200 bg-white flex-col p-4">

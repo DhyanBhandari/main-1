@@ -23,7 +23,10 @@ import type {
   AdminNotification,
   GeneratedCredentials,
   PolygonPoint,
+  AdminRole,
+  AdminTabPermission,
 } from '@/types/admin';
+import { ALL_TAB_PERMISSIONS } from '@/types/admin';
 import type { Institute } from '@/types/institute';
 
 // Collection references
@@ -36,9 +39,9 @@ const CONFIG_COLLECTION = 'config';
  * Hardcoded admin accounts (no Firestore dependency)
  * These are the authorized admin emails and their passwords
  */
-const ADMIN_ACCOUNTS = [
-  { email: 'dhyanbhandari200@gmail.com', password: 'Dhyan3016#' },
-  { email: 'erthaloka@gmail.com', password: 'Freshstart4ever' },
+const ADMIN_ACCOUNTS: { email: string; password: string; role: AdminRole }[] = [
+  { email: 'dhyanbhandari200@gmail.com', password: 'Dhyan3016#', role: 'superadmin' },
+  { email: 'erthaloka@gmail.com', password: 'Freshstart4ever', role: 'superadmin' },
 ];
 
 /**
@@ -47,10 +50,27 @@ const ADMIN_ACCOUNTS = [
 const ADMIN_EMAILS = ADMIN_ACCOUNTS.map((a) => a.email.toLowerCase());
 
 /**
- * Check if an email is an admin (uses hardcoded list, no Firestore)
+ * Check if an email is an admin. Returns role info.
  */
-export async function isAdminEmail(email: string): Promise<boolean> {
-  return ADMIN_EMAILS.includes(email.toLowerCase());
+export async function isAdminEmail(email: string): Promise<{ isAdmin: boolean; role: AdminRole | null; permissions: AdminTabPermission[] }> {
+  // Check hardcoded superadmins first
+  if (ADMIN_EMAILS.includes(email.toLowerCase())) {
+    return { isAdmin: true, role: 'superadmin', permissions: [...ALL_TAB_PERMISSIONS] };
+  }
+  // Check backend for DB-stored admins
+  try {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${API_BASE_URL}/api/admin/admins/check?email=${encodeURIComponent(email)}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.is_admin) {
+        return { isAdmin: true, role: data.role, permissions: data.permissions };
+      }
+    }
+  } catch (e) {
+    console.error('Failed to check admin status via API:', e);
+  }
+  return { isAdmin: false, role: null, permissions: [] };
 }
 
 /**
@@ -62,27 +82,47 @@ export async function initializeAdminAccounts(): Promise<void> {
 }
 
 /**
- * Verify admin email/password login (uses hardcoded credentials)
+ * Verify admin email/password login. Returns role and permissions.
  */
 export async function verifyAdminCredentials(
   email: string,
   password: string
-): Promise<{ success: boolean; email: string }> {
-  // Find matching admin account
+): Promise<{ success: boolean; email: string; role: AdminRole; permissions: AdminTabPermission[] }> {
+  // Check hardcoded superadmin accounts first
   const adminAccount = ADMIN_ACCOUNTS.find(
     (account) => account.email.toLowerCase() === email.toLowerCase()
   );
 
-  if (!adminAccount) {
+  if (adminAccount) {
+    if (password !== adminAccount.password) {
+      throw new Error('Invalid email or password');
+    }
+    return {
+      success: true,
+      email: adminAccount.email,
+      role: 'superadmin',
+      permissions: [...ALL_TAB_PERMISSIONS],
+    };
+  }
+
+  // Not a hardcoded account — try backend API for DB-stored admins
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const response = await fetch(
+    `${API_BASE_URL}/api/admin/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
+    { method: 'POST' }
+  );
+
+  if (!response.ok) {
     throw new Error('Invalid email or password');
   }
 
-  // Direct password comparison (credentials are hardcoded)
-  if (password !== adminAccount.password) {
-    throw new Error('Invalid email or password');
-  }
-
-  return { success: true, email: adminAccount.email };
+  const result = await response.json();
+  return {
+    success: true,
+    email: result.email,
+    role: result.role,
+    permissions: result.permissions,
+  };
 }
 
 /**

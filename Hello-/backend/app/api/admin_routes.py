@@ -21,6 +21,7 @@ from typing import List, Dict, Any
 import json
 import os
 
+from typing import Optional as Opt
 from app.models.admin_models import (
     AccessRequestCreate,
     AccessRequest,
@@ -32,6 +33,9 @@ from app.models.admin_models import (
     EmailData,
     InstituteUpdate,
     PasswordReset,
+    BaselineAssessmentCreate,
+    AdminUserCreate,
+    AdminUserUpdate,
 )
 from app.services.admin_service import get_admin_service, AdminService
 
@@ -73,14 +77,84 @@ async def admin_login(
     password: str,
     service: AdminService = Depends(get_service),
 ):
-    """Admin login - verify admin credentials."""
-    if service.verify_admin(email, password):
+    """Admin login - verify admin credentials. Returns role and permissions."""
+    result = await service.verify_admin(email, password)
+    if result:
         return {
             "success": True,
-            "email": email,
+            "email": result["email"],
+            "role": result["role"],
+            "permissions": result["permissions"],
             "message": "Login successful",
         }
     raise HTTPException(status_code=401, detail="Invalid credentials")
+
+
+# ==================== ADMIN USER MANAGEMENT ====================
+
+
+@router.get("/admins/check", response_model=Dict[str, Any])
+async def check_admin_email(
+    email: str,
+    service: AdminService = Depends(get_service),
+):
+    """Check if an email is an admin and return role/permissions."""
+    result = await service.is_admin_email(email)
+    return result
+
+
+@router.get("/admins", response_model=List[Dict[str, Any]])
+async def get_admin_users(
+    service: AdminService = Depends(get_service),
+):
+    """Get all DB-stored admin users."""
+    return await service.get_all_admin_users()
+
+
+@router.post("/admins", response_model=Dict[str, Any])
+async def create_admin_user(
+    data: AdminUserCreate,
+    service: AdminService = Depends(get_service),
+):
+    """Create a new admin user."""
+    try:
+        admin_user = await service.create_admin_user(
+            email=data.email,
+            password=data.password,
+            permissions=data.permissions,
+            created_by=data.created_by,
+        )
+        return admin_user
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/admins/{admin_id}", response_model=Dict[str, Any])
+async def update_admin_user(
+    admin_id: int,
+    data: AdminUserUpdate,
+    service: AdminService = Depends(get_service),
+):
+    """Update admin user permissions or password."""
+    try:
+        updates = data.dict(exclude_none=True)
+        await service.update_admin_user(admin_id, updates)
+        return {"success": True, "message": "Admin user updated"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/admins/{admin_id}")
+async def delete_admin_user(
+    admin_id: int,
+    service: AdminService = Depends(get_service),
+):
+    """Delete an admin user."""
+    try:
+        await service.delete_admin_user(admin_id)
+        return {"success": True, "message": "Admin user deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ==================== ADMIN ENDPOINTS ====================
@@ -345,6 +419,39 @@ async def send_credentials_email(
             "success": success,
             "message": "Email sent successfully" if success else "Failed to send email",
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== BASELINE ASSESSMENT ENDPOINTS ====================
+
+
+@router.post("/baseline/save")
+async def save_baseline_assessment(
+    data: BaselineAssessmentCreate,
+    service: AdminService = Depends(get_service),
+):
+    """Save a completed baseline assessment to Supabase."""
+    try:
+        assessment_id = await service.save_baseline_assessment(data)
+        return {
+            "success": True,
+            "id": assessment_id,
+            "message": "Baseline assessment saved successfully",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/baseline/history")
+async def get_baseline_history(
+    admin_email: Opt[str] = None,
+    service: AdminService = Depends(get_service),
+):
+    """Get baseline assessment history. Optionally filter by admin email."""
+    try:
+        history = await service.get_baseline_history(admin_email)
+        return history
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

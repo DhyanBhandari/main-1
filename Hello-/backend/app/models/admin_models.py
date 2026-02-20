@@ -129,3 +129,58 @@ class InstituteUpdate(BaseModel):
 class PasswordReset(BaseModel):
     """Reset institute password."""
     password: Optional[str] = None  # None = auto-generate, or custom value
+
+
+class AdminUserCreate(BaseModel):
+    """Data for creating a new admin user."""
+    email: str
+    password: str
+    permissions: List[str]  # tab IDs: dashboards, pending, approved, all, notifications, baseline
+    created_by: str
+
+
+class AdminUserUpdate(BaseModel):
+    """Data for updating an admin user."""
+    permissions: Optional[List[str]] = None
+    password: Optional[str] = None
+
+
+class AdminUserResponse(BaseModel):
+    """Admin user response data."""
+    id: int
+    email: str
+    role: str
+    permissions: List[str]
+    created_at: str
+    created_by: str
+
+
+class BaselineAssessmentCreate(BaseModel):
+    """Data for saving a baseline assessment."""
+    admin_email: str
+    label: Optional[str] = None
+    organization_name: Optional[str] = None
+    organization_type: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    polygon_points: List[PolygonPoint]
+    phi_response: dict
+    overall_score: Optional[float] = None
+    pillar_scores: Optional[dict] = None
+    location_name: Optional[str] = None
+
+
+class BaselineAssessmentResponse(BaseModel):
+    """Baseline assessment record from Supabase."""
+    id: str
+    admin_email: str
+    label: Optional[str] = None
+    organization_name: Optional[str] = None
+    organization_type: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    polygon_points: list
+    overall_score: Optional[float] = None
+    pillar_scores: Optional[dict] = None
+    location_name: Optional[str] = None
+    created_at: str

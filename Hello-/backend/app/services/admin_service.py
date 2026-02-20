@@ -29,7 +29,13 @@ from app.models.admin_models import (
     GeneratedCredentials,
     PolygonPoint,
     EmailData,
+    BaselineAssessmentCreate,
+    BaselineAssessmentResponse,
+    AdminUserCreate,
+    AdminUserUpdate,
+    AdminUserResponse,
 )
+from app.services.database import get_supabase, reverse_geocode
 
 
 # Database path
@@ -94,21 +100,148 @@ class AdminService:
                 )
             """)
 
+            # Admin users table (for role-based access)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS admin_users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    role TEXT DEFAULT 'admin',
+                    permissions TEXT NOT NULL DEFAULT '[]',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    created_by TEXT NOT NULL
+                )
+            """)
+
             await db.commit()
             print(f"Admin database initialized at {self.db_path}")
 
+    ALL_PERMISSIONS = ["dashboards", "pending", "approved", "all", "notifications", "baseline"]
+
     # ==================== ADMIN AUTH ====================
 
-    def verify_admin(self, email: str, password: str) -> bool:
-        """Verify admin credentials."""
+    async def verify_admin(self, email: str, password: str) -> Optional[Dict[str, Any]]:
+        """Verify admin credentials. Returns dict with role/permissions or None."""
+        # Check hardcoded superadmin accounts first
         for admin in ADMIN_ACCOUNTS:
             if admin["email"].lower() == email.lower() and admin["password"] == password:
-                return True
-        return False
+                return {
+                    "email": admin["email"],
+                    "role": "superadmin",
+                    "permissions": self.ALL_PERMISSIONS,
+                }
+        # Check DB admin_users table
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM admin_users WHERE LOWER(email) = ?", (email.lower(),)
+            )
+            row = await cursor.fetchone()
+            if row and self.verify_password(password, row["password_hash"]):
+                return {
+                    "email": row["email"],
+                    "role": row["role"],
+                    "permissions": json.loads(row["permissions"]),
+                }
+        return None
 
-    def is_admin_email(self, email: str) -> bool:
-        """Check if email is an admin."""
-        return email.lower() in ADMIN_EMAILS
+    async def is_admin_email(self, email: str) -> Dict[str, Any]:
+        """Check if email is an admin. Returns dict with is_admin, role, permissions."""
+        # Check hardcoded superadmins
+        if email.lower() in ADMIN_EMAILS:
+            return {
+                "is_admin": True,
+                "role": "superadmin",
+                "permissions": self.ALL_PERMISSIONS,
+            }
+        # Check DB
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM admin_users WHERE LOWER(email) = ?", (email.lower(),)
+            )
+            row = await cursor.fetchone()
+            if row:
+                return {
+                    "is_admin": True,
+                    "role": row["role"],
+                    "permissions": json.loads(row["permissions"]),
+                }
+        return {"is_admin": False, "role": None, "permissions": []}
+
+    # ==================== ADMIN USER CRUD ====================
+
+    async def get_all_admin_users(self) -> List[Dict[str, Any]]:
+        """Get all DB-stored admin users."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM admin_users ORDER BY created_at DESC"
+            )
+            rows = await cursor.fetchall()
+            return [
+                {
+                    "id": row["id"],
+                    "email": row["email"],
+                    "role": row["role"],
+                    "permissions": json.loads(row["permissions"]),
+                    "created_at": row["created_at"],
+                    "created_by": row["created_by"],
+                }
+                for row in rows
+            ]
+
+    async def create_admin_user(
+        self, email: str, password: str, permissions: List[str], created_by: str
+    ) -> Dict[str, Any]:
+        """Create a new admin user."""
+        password_hash = self.hash_password(password)
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute(
+                """
+                INSERT INTO admin_users (email, password_hash, role, permissions, created_by)
+                VALUES (?, ?, 'admin', ?, ?)
+                """,
+                (email, password_hash, json.dumps(permissions), created_by),
+            )
+            await db.commit()
+            return {
+                "id": cursor.lastrowid,
+                "email": email,
+                "role": "admin",
+                "permissions": permissions,
+                "created_at": datetime.now().isoformat(),
+                "created_by": created_by,
+            }
+
+    async def update_admin_user(self, admin_id: int, updates: Dict[str, Any]) -> None:
+        """Update an admin user's permissions or password."""
+        update_fields = []
+        update_values = []
+
+        if "permissions" in updates and updates["permissions"] is not None:
+            update_fields.append("permissions = ?")
+            update_values.append(json.dumps(updates["permissions"]))
+
+        if "password" in updates and updates["password"]:
+            update_fields.append("password_hash = ?")
+            update_values.append(self.hash_password(updates["password"]))
+
+        if not update_fields:
+            return
+
+        update_values.append(admin_id)
+        query = f"UPDATE admin_users SET {', '.join(update_fields)} WHERE id = ?"
+
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(query, update_values)
+            await db.commit()
+
+    async def delete_admin_user(self, admin_id: int) -> None:
+        """Delete an admin user."""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("DELETE FROM admin_users WHERE id = ?", (admin_id,))
+            await db.commit()
 
     # ==================== ACCESS REQUESTS ====================
 
@@ -558,6 +691,64 @@ class AdminService:
         # emailjs_public_key = os.environ.get("EMAILJS_PUBLIC_KEY")
 
         return True
+
+    # ==================== BASELINE ASSESSMENTS ====================
+
+    async def save_baseline_assessment(self, data: BaselineAssessmentCreate) -> Optional[str]:
+        """Save a baseline assessment to Supabase."""
+        supabase = get_supabase()
+        if supabase is None:
+            print("Warning: Supabase not configured. Cannot save baseline assessment.")
+            return None
+
+        try:
+            # Reverse geocode from first polygon point
+            location_name = data.location_name
+            if not location_name and data.polygon_points:
+                p = data.polygon_points[0]
+                location_name = await reverse_geocode(p.lat, p.lng)
+
+            row = {
+                "admin_email": data.admin_email,
+                "label": data.label,
+                "organization_name": data.organization_name,
+                "organization_type": data.organization_type,
+                "contact_email": data.email,
+                "contact_phone": data.phone,
+                "polygon_points": [{"lat": p.lat, "lng": p.lng, "label": p.label} for p in data.polygon_points],
+                "phi_response": data.phi_response,
+                "overall_score": data.overall_score,
+                "pillar_scores": data.pillar_scores,
+                "location_name": location_name,
+            }
+
+            response = supabase.table("baseline_assessments").insert(row).execute()
+            if response.data and len(response.data) > 0:
+                return response.data[0].get("id")
+            return None
+        except Exception as e:
+            print(f"Failed to save baseline assessment: {e}")
+            return None
+
+    async def get_baseline_history(self, admin_email: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get baseline assessment history from Supabase."""
+        supabase = get_supabase()
+        if supabase is None:
+            return []
+
+        try:
+            query = supabase.table("baseline_assessments") \
+                .select("id, admin_email, label, organization_name, organization_type, contact_email, contact_phone, polygon_points, phi_response, overall_score, pillar_scores, location_name, created_at") \
+                .order("created_at", desc=True)
+
+            if admin_email:
+                query = query.eq("admin_email", admin_email)
+
+            response = query.execute()
+            return response.data if response.data else []
+        except Exception as e:
+            print(f"Failed to get baseline history: {e}")
+            return []
 
     # ==================== STATS ====================
 

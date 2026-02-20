@@ -6,11 +6,15 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { onAuthChange, getCurrentUser } from '@/auth/authService';
 import { isAdminEmail, initializeAdminAccounts } from '@/services/adminService';
 import { adminSignIn, adminSignInWithEmail, adminSignOut, checkAdminAccess } from './adminAuth';
-import type { AdminUser } from '@/types/admin';
+import type { AdminUser, AdminRole, AdminTabPermission } from '@/types/admin';
+import { ALL_TAB_PERMISSIONS } from '@/types/admin';
 
 interface AdminContextType {
   admin: AdminUser | null;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
+  role: AdminRole | null;
+  permissions: AdminTabPermission[];
   loading: boolean;
   error: string | null;
   signIn: () => Promise<void>;
@@ -47,13 +51,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     // Subscribe to Google auth changes
     const unsubscribe = onAuthChange(async (user) => {
       if (user?.email) {
-        const adminStatus = await isAdminEmail(user.email);
-        if (adminStatus) {
+        const adminCheck = await isAdminEmail(user.email);
+        if (adminCheck.isAdmin) {
           setAdmin({
             email: user.email,
             displayName: user.displayName,
             photoURL: user.photoURL,
             authMethod: 'google',
+            role: adminCheck.role!,
+            permissions: adminCheck.permissions,
           });
           setIsAdmin(true);
         }
@@ -111,11 +117,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const clearError = () => setError(null);
 
+  const isSuperAdmin = admin?.role === 'superadmin';
+  const role = admin?.role ?? null;
+  const permissions = admin?.permissions ?? [];
+
   return (
     <AdminContext.Provider
       value={{
         admin,
         isAdmin,
+        isSuperAdmin,
+        role,
+        permissions,
         loading,
         error,
         signIn,

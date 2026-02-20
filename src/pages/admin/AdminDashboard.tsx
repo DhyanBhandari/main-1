@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Clock, CheckCircle, Users, Bell, Plus, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Clock, CheckCircle, Users, Bell, Plus, LayoutDashboard, BarChart3, Shield } from 'lucide-react';
 import { useAdmin } from '@/admin';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -19,6 +19,9 @@ import DeleteDashboardDialog from '@/components/admin/DeleteDashboardDialog';
 import ApproveRequestModal from '@/components/admin/ApproveRequestModal';
 import RejectRequestModal from '@/components/admin/RejectRequestModal';
 import CreateOrganizationModal from '@/components/admin/CreateOrganizationModal';
+import BaselineAssessment from '@/components/admin/BaselineAssessment';
+import AdminManagement from '@/components/admin/AdminManagement';
+import type { AdminTabPermission } from '@/types/admin';
 import {
   getPendingRequests,
   getAllRequests,
@@ -34,11 +37,19 @@ const markAllNotificationsRead = async (): Promise<void> => {};
 const subscribeToPendingCount = (_callback: (count: number) => void): (() => void) => () => {};
 const subscribeToNotifications = (_callback: (notifs: AdminNotification[]) => void): (() => void) => () => {};
 
-type TabType = 'pending' | 'approved' | 'all' | 'notifications' | 'dashboards';
+type TabType = 'pending' | 'approved' | 'all' | 'notifications' | 'dashboards' | 'baseline' | 'admin-management';
 
 const AdminDashboard = () => {
-  const { admin } = useAdmin();
-  const [activeTab, setActiveTab] = useState<TabType>('dashboards');
+  const { admin, isSuperAdmin, permissions } = useAdmin();
+
+  // Determine default tab: superadmins get dashboards, regular admins get first permitted tab
+  const getDefaultTab = (): TabType => {
+    if (isSuperAdmin) return 'dashboards';
+    if (permissions.length > 0) return permissions[0] as TabType;
+    return 'dashboards';
+  };
+
+  const [activeTab, setActiveTab] = useState<TabType>(getDefaultTab());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -160,13 +171,21 @@ const AdminDashboard = () => {
   };
 
   // Mobile tabs for smaller screens
-  const tabs = [
-    { id: 'dashboards' as TabType, label: 'Dashboards', icon: LayoutDashboard, count: approvedOrgs.length },
-    { id: 'pending' as TabType, label: 'Pending', icon: Clock, count: pendingCount },
-    { id: 'approved' as TabType, label: 'Approved', icon: CheckCircle, count: approvedOrgs.length },
-    { id: 'all' as TabType, label: 'All', icon: Users },
-    { id: 'notifications' as TabType, label: 'Notifications', icon: Bell, count: unreadCount },
+  const allMobileTabs: { id: TabType; label: string; icon: typeof LayoutDashboard; count?: number; permissionId?: AdminTabPermission; superadminOnly?: boolean }[] = [
+    { id: 'dashboards', label: 'Dashboards', icon: LayoutDashboard, count: approvedOrgs.length, permissionId: 'dashboards' },
+    { id: 'pending', label: 'Pending', icon: Clock, count: pendingCount, permissionId: 'pending' },
+    { id: 'approved', label: 'Approved', icon: CheckCircle, count: approvedOrgs.length, permissionId: 'approved' },
+    { id: 'all', label: 'All', icon: Users, permissionId: 'all' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, count: unreadCount, permissionId: 'notifications' },
+    { id: 'baseline', label: 'Baseline', icon: BarChart3, permissionId: 'baseline' },
+    { id: 'admin-management', label: 'Admins', icon: Shield, superadminOnly: true },
   ];
+
+  const tabs = allMobileTabs.filter((tab) => {
+    if (tab.superadminOnly) return isSuperAdmin;
+    if (isSuperAdmin) return true;
+    return tab.permissionId && permissions.includes(tab.permissionId);
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,6 +205,8 @@ const AdminDashboard = () => {
         pendingCount={pendingCount}
         approvedCount={approvedOrgs.length}
         unreadNotifications={unreadCount}
+        permissions={permissions}
+        isSuperAdmin={isSuperAdmin}
       />
 
       {/* Mobile Tab Bar */}
@@ -229,6 +250,8 @@ const AdminDashboard = () => {
                 {activeTab === 'approved' && 'Approved Organizations'}
                 {activeTab === 'all' && 'All Requests'}
                 {activeTab === 'notifications' && 'Notifications'}
+                {activeTab === 'baseline' && 'Baseline Assessment'}
+                {activeTab === 'admin-management' && 'Admin Management'}
               </h1>
               <p className="text-gray-500 text-sm mt-1">
                 {activeTab === 'dashboards' && 'Manage organization dashboards and credentials'}
@@ -236,15 +259,19 @@ const AdminDashboard = () => {
                 {activeTab === 'approved' && 'Organizations with active dashboard access'}
                 {activeTab === 'all' && 'View all access requests'}
                 {activeTab === 'notifications' && 'Stay updated on system activity'}
+                {activeTab === 'baseline' && 'Run baseline PPA assessments and download reports'}
+                {activeTab === 'admin-management' && 'Manage admin accounts and permissions'}
               </p>
             </div>
-            <button
-              onClick={() => setCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#0D2821] text-white rounded-lg hover:bg-[#065f46] transition-colors font-medium shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-              Create Organization
-            </button>
+            {activeTab !== 'baseline' && activeTab !== 'admin-management' && (
+              <button
+                onClick={() => setCreateModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#0D2821] text-white rounded-lg hover:bg-[#065f46] transition-colors font-medium shadow-sm"
+              >
+                <Plus className="w-5 h-5" />
+                Create Organization
+              </button>
+            )}
           </div>
 
           {/* Content */}
@@ -307,6 +334,14 @@ const AdminDashboard = () => {
                   onMarkRead={handleMarkNotificationRead}
                   onMarkAllRead={handleMarkAllRead}
                 />
+              )}
+
+              {activeTab === 'baseline' && (
+                <BaselineAssessment adminEmail={admin?.email || ''} />
+              )}
+
+              {activeTab === 'admin-management' && isSuperAdmin && (
+                <AdminManagement adminEmail={admin?.email || ''} />
               )}
             </motion.div>
           </AnimatePresence>

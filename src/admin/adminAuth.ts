@@ -20,8 +20,8 @@ export async function adminSignIn(): Promise<AdminUser> {
     throw new Error('Email is required for admin access');
   }
 
-  const isAdmin = await isAdminEmail(user.email);
-  if (!isAdmin) {
+  const adminCheck = await isAdminEmail(user.email);
+  if (!adminCheck.isAdmin) {
     await firebaseSignOut();
     throw new Error('You do not have admin access');
   }
@@ -31,6 +31,8 @@ export async function adminSignIn(): Promise<AdminUser> {
     displayName: user.displayName,
     photoURL: user.photoURL,
     authMethod: 'google',
+    role: adminCheck.role!,
+    permissions: adminCheck.permissions,
   };
 }
 
@@ -44,6 +46,8 @@ export async function adminSignInWithEmail(email: string, password: string): Pro
     email: result.email,
     displayName: result.email.split('@')[0],
     authMethod: 'email',
+    role: result.role,
+    permissions: result.permissions,
   };
 
   // Store session in sessionStorage
@@ -86,14 +90,16 @@ export async function checkAdminAccess(): Promise<AdminUser | null> {
   const user = getCurrentUser();
   if (!user?.email) return null;
 
-  const isAdmin = await isAdminEmail(user.email);
-  if (!isAdmin) return null;
+  const adminCheck = await isAdminEmail(user.email);
+  if (!adminCheck.isAdmin) return null;
 
   return {
     email: user.email,
     displayName: user.displayName,
     photoURL: user.photoURL,
     authMethod: 'google',
+    role: adminCheck.role!,
+    permissions: adminCheck.permissions,
   };
 }
 

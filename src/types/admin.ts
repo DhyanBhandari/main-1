@@ -66,6 +66,11 @@ export interface PolygonPoint {
   label?: string;
 }
 
+// Admin roles and permissions
+export type AdminRole = 'superadmin' | 'admin';
+export type AdminTabPermission = 'dashboards' | 'pending' | 'approved' | 'all' | 'notifications' | 'baseline';
+export const ALL_TAB_PERMISSIONS: AdminTabPermission[] = ['dashboards', 'pending', 'approved', 'all', 'notifications', 'baseline'];
+
 // Admin auth method
 export type AdminAuthMethod = 'google' | 'email';
 
@@ -75,4 +80,16 @@ export interface AdminUser {
   displayName: string | null;
   photoURL?: string | null;
   authMethod?: AdminAuthMethod;
+  role: AdminRole;
+  permissions: AdminTabPermission[];
+}
+
+// Managed admin (DB-stored admin user)
+export interface ManagedAdmin {
+  id: number;
+  email: string;
+  role: AdminRole;
+  permissions: AdminTabPermission[];
+  created_at: string;
+  created_by: string;
 }

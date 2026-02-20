@@ -9,6 +9,8 @@ import type {
   AccessRequestFormData,
   GeneratedCredentials,
   PolygonPoint,
+  ManagedAdmin,
+  AdminTabPermission,
 } from '@/types/admin';
 
 // Backend API URL - adjust based on environment
@@ -417,6 +419,136 @@ export async function getDashboardPreview(instituteId: string): Promise<any> {
   }
 
   return response.json();
+}
+
+// ==================== Baseline Assessment ====================
+
+export interface BaselineAssessmentData {
+  admin_email: string;
+  label?: string;
+  organization_name?: string;
+  organization_type?: string;
+  email?: string;
+  phone?: string;
+  polygon_points: { lat: number; lng: number; label?: string }[];
+  phi_response: any;
+  overall_score?: number;
+  pillar_scores?: Record<string, number>;
+  location_name?: string;
+}
+
+export interface BaselineAssessmentRecord {
+  id: string;
+  admin_email: string;
+  label?: string;
+  organization_name?: string;
+  organization_type?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  polygon_points: { lat: number; lng: number; label?: string }[];
+  phi_response?: any;
+  overall_score?: number;
+  pillar_scores?: Record<string, number>;
+  location_name?: string;
+  created_at: string;
+}
+
+/**
+ * Save a baseline assessment
+ */
+export async function saveBaselineAssessment(data: BaselineAssessmentData): Promise<string | null> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/baseline/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to save baseline assessment');
+  }
+
+  const result = await response.json();
+  return result.id;
+}
+
+/**
+ * Get baseline assessment history
+ */
+export async function getBaselineHistory(adminEmail?: string): Promise<BaselineAssessmentRecord[]> {
+  const params = adminEmail ? `?admin_email=${encodeURIComponent(adminEmail)}` : '';
+  const response = await fetch(`${API_BASE_URL}/api/admin/baseline/history${params}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch baseline history');
+  }
+
+  return response.json();
+}
+
+// ==================== Admin User Management ====================
+
+/**
+ * Get all managed admin users
+ */
+export async function getAdminUsers(): Promise<ManagedAdmin[]> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/admins`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch admin users');
+  }
+  return response.json();
+}
+
+/**
+ * Create a new admin user
+ */
+export async function createAdminUser(data: {
+  email: string;
+  password: string;
+  permissions: AdminTabPermission[];
+  created_by: string;
+}): Promise<ManagedAdmin> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/admins`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to create admin user');
+  }
+  return response.json();
+}
+
+/**
+ * Update an admin user's permissions or password
+ */
+export async function updateAdminUser(
+  adminId: number,
+  updates: { permissions?: AdminTabPermission[]; password?: string }
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/admins/${adminId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to update admin user');
+  }
+}
+
+/**
+ * Delete an admin user
+ */
+export async function deleteAdminUser(adminId: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/admins/${adminId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to delete admin user');
+  }
 }
 
 // ==================== Helper Functions ====================
