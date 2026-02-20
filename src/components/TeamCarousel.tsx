@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, User, Star } from "lucide-react";
 import mentorImage from "@/assets/partners/mentor.png";
+import suryaImg from "@/assets/surya.png";
 
 interface TeamMember {
     name: string;
@@ -55,7 +56,7 @@ const teamMembers: TeamMember[] = [
     {
         name: "SURYA PRAKASH",
         role: "CTO @ ErthaLoka",
-        img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80&auto=format&fit=crop",
+        img: suryaImg,
         description: "Blockchain | Design | Web-development",
         lines: [
             "B.Tech – Dayanand Sagar College of Engineering",

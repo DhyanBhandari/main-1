@@ -59,6 +59,7 @@ import groupPhotoImg from "@/assets/new/Group-Photo.jpg";
 import ramachandranImg from "@/assets/new/Ramachandran.png";
 import vivekaImg from "@/assets/new/viveka.png";
 import rajarajanImg from "@/assets/new/Rajarajan.png";
+import suryaImg from "@/assets/surya.png";
 
 /**
  * Technology Section Cards Data
@@ -164,7 +165,7 @@ const teamData = [
   {
     name: "Surya Prakash",
     role: "CTO @ ErthaLoka",
-    image: null, // Placeholder - will show first letter
+    image: suryaImg,
     details: [
       "B.Tech - Dayanand Sagar College of Engineering",
       "5+ years experience in Blockchain | Design | Web development",
