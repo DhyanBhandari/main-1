@@ -551,33 +551,104 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
         y += 8;
       });
 
-      // Score badge on cover
+      // Score, Carbon Credits & ESV circles on cover
       if (reportData.summary?.overall_score != null) {
         y += 8;
         const score = reportData.summary.overall_score;
         const status = getOverallStatus(score);
         const scoreColor = hexToRgb(status.color);
 
-        // Score circle — white inner on white bg
-        pdf.setFillColor(230, 230, 230);
-        pdf.circle(W / 2, y + 20, 24, 'F');
-        pdf.setFillColor(...scoreColor);
-        pdf.circle(W / 2, y + 20, 21, 'F');
-        pdf.setFillColor(255, 255, 255);
-        pdf.circle(W / 2, y + 20, 15, 'F');
-        pdf.setFontSize(24);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(...scoreColor);
-        pdf.text(score.toFixed(1), W / 2, y + 23, { align: 'center' });
-        pdf.setFontSize(7);
-        pdf.setTextColor(...BRAND);
-        pdf.text('PPA SCORE', W / 2, y + 29, { align: 'center' });
+        // Determine which circles to show
+        const hasCarbon = pData?.carbon_credits?.available;
+        const hasESV = pData?.ecosystem_service_value?.available;
 
-        // Grade
-        y += 50;
-        pdf.setFontSize(16);
-        pdf.setTextColor(...scoreColor as unknown as [number, number, number]);
-        pdf.text(`Grade: ${status.grade} — ${status.status}`, W / 2, y, { align: 'center' });
+        // Circle positions — evenly spaced across page width
+        const circleR = 22;
+        const circleCy = y + circleR + 2;
+        const circles: { cx: number; label: string; value: string; sub: string; color: [number, number, number]; ringColor: [number, number, number] }[] = [];
+
+        // PPA Score circle (always shown)
+        circles.push({
+          cx: 0, // placeholder, will be computed
+          label: 'PPA SCORE',
+          value: score.toFixed(1),
+          sub: `${status.grade} — ${status.status}`,
+          color: scoreColor,
+          ringColor: scoreColor,
+        });
+
+        // Carbon Credits circle
+        if (hasCarbon) {
+          const cc = pData!.carbon_credits!;
+          circles.push({
+            cx: 0,
+            label: 'CARBON CREDITS',
+            value: `${cc.verified_co2_tonnes?.toFixed(0)}`,
+            sub: `tCO2 verified`,
+            color: [5, 150, 105],
+            ringColor: [5, 150, 105],
+          });
+        }
+
+        // ESV circle
+        if (hasESV) {
+          const esv = pData!.ecosystem_service_value!;
+          const esvVal = esv.total_annual_esv_usd || 0;
+          const esvDisplay = esvVal >= 1000000
+            ? `$${(esvVal / 1000000).toFixed(1)}M`
+            : esvVal >= 1000
+            ? `$${(esvVal / 1000).toFixed(1)}K`
+            : `$${esvVal.toFixed(0)}`;
+          circles.push({
+            cx: 0,
+            label: 'ESV / YEAR',
+            value: esvDisplay,
+            sub: `$${esv.adjusted_esv_per_ha_usd?.toLocaleString()}/ha`,
+            color: [37, 99, 235],
+            ringColor: [37, 99, 235],
+          });
+        }
+
+        // Compute horizontal positions — evenly distributed
+        const totalCircles = circles.length;
+        const spacing = CW / (totalCircles + 1);
+        circles.forEach((c, idx) => {
+          c.cx = M + spacing * (idx + 1);
+        });
+
+        // Draw each circle
+        circles.forEach((c) => {
+          // Outer ring
+          pdf.setFillColor(230, 230, 230);
+          pdf.circle(c.cx, circleCy, circleR + 2, 'F');
+          // Colored ring
+          pdf.setFillColor(...c.ringColor);
+          pdf.circle(c.cx, circleCy, circleR, 'F');
+          // White inner
+          pdf.setFillColor(255, 255, 255);
+          pdf.circle(c.cx, circleCy, circleR - 5, 'F');
+
+          // Value text
+          const fontSize = c.value.length > 6 ? 14 : c.value.length > 4 ? 16 : 20;
+          pdf.setFontSize(fontSize);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...c.color);
+          pdf.text(c.value, c.cx, circleCy + 2, { align: 'center' });
+
+          // Label below circle
+          pdf.setFontSize(7);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...BRAND);
+          pdf.text(c.label, c.cx, circleCy + circleR + 7, { align: 'center' });
+
+          // Sub-label
+          pdf.setFontSize(6.5);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(...GRAY);
+          pdf.text(c.sub, c.cx, circleCy + circleR + 12, { align: 'center' });
+        });
+
+        y = circleCy + circleR + 18;
       }
 
       // UN-SEEA badge — green bg box on white page
