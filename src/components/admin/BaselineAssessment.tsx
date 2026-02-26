@@ -559,7 +559,6 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
         const scoreColor = hexToRgb(status.color);
 
         // Determine which circles to show
-        const hasCarbon = pData?.carbon_credits?.available;
         const hasESV = pData?.ecosystem_service_value?.available;
 
         // Circle positions — evenly spaced across page width
@@ -576,19 +575,6 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
           color: scoreColor,
           ringColor: scoreColor,
         });
-
-        // Carbon Credits circle
-        if (hasCarbon) {
-          const cc = pData!.carbon_credits!;
-          circles.push({
-            cx: 0,
-            label: 'CARBON CREDITS',
-            value: `${cc.verified_co2_tonnes?.toFixed(0)}`,
-            sub: `tCO2 verified`,
-            color: [5, 150, 105],
-            ringColor: [5, 150, 105],
-          });
-        }
 
         // ESV circle
         if (hasESV) {
