@@ -46,22 +46,32 @@ const getZoom = (radius: number): number => {
   return 9;
 };
 
-// Simple area calculation
-const calculateArea = (points: PolygonPoint[]): { ha: number; acres: number } | null => {
+// Spherical Shoelace — accurate for any parcel size on Earth's curved surface
+const calculateArea = (points: PolygonPoint[]): { ha: number; acres: number; widthKm: number; heightKm: number } | null => {
   if (points.length !== 4) return null;
   try {
     const toRad = (d: number) => (d * Math.PI) / 180;
-    const centerLat = points.reduce((s, p) => s + p.lat, 0) / 4;
-    const mLat = 111320;
-    const mLng = 111320 * Math.cos(toRad(centerLat));
-    const coords = points.map(p => ({ x: p.lng * mLng, y: p.lat * mLat }));
+    const R = 6378137; // Earth radius in metres
+    const n = points.length;
+
     let area = 0;
-    for (let i = 0; i < 4; i++) {
-      const j = (i + 1) % 4;
-      area += coords[i].x * coords[j].y - coords[j].x * coords[i].y;
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      const lat1 = toRad(points[i].lat);
+      const lon1 = toRad(points[i].lng);
+      const lat2 = toRad(points[j].lat);
+      const lon2 = toRad(points[j].lng);
+      area += (lon2 - lon1) * (Math.sin(lat1) + Math.sin(lat2));
     }
-    area = Math.abs(area) / 2;
-    return { ha: area / 10000, acres: area / 4046.86 };
+    const m2 = Math.abs(area) * R * R / 2;
+
+    const lats = points.map(p => p.lat);
+    const lngs = points.map(p => p.lng);
+    const centerLat = toRad(points.reduce((s, p) => s + p.lat, 0) / n);
+    const latSpanM = (Math.max(...lats) - Math.min(...lats)) * 111320;
+    const lngSpanM = (Math.max(...lngs) - Math.min(...lngs)) * 111320 * Math.cos(centerLat);
+
+    return { ha: m2 / 10000, acres: m2 / 4046.86, widthKm: lngSpanM / 1000, heightKm: latSpanM / 1000 };
   } catch {
     return null;
   }
@@ -311,6 +321,9 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ center, radius, points,
               <p className="text-xs text-gray-500">Acres</p>
             </div>
           </div>
+          <p className="text-xs text-center text-gray-500 mt-2">
+            {area.widthKm.toFixed(3)} km wide × {area.heightKm.toFixed(3)} km tall
+          </p>
         </div>
       )}
     </div>

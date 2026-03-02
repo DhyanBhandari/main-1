@@ -222,17 +222,24 @@ class BasePillar(ABC):
         Returns:
             Dict with metric values
         """
-        # Default implementation calls query_metrics with buffer_radius=0
-        # Subclasses can override for optimized polygon handling
-        # For now, use centroid with a reasonable buffer as fallback
-        return self.query_metrics(point, 500, date_range, metrics)
+        # Store the polygon region so query_metrics (and _create_buffered_region)
+        # can use the actual polygon instead of a point buffer.
+        self._polygon_region = region
+        try:
+            return self.query_metrics(point, 0, date_range, metrics)
+        finally:
+            self._polygon_region = None
 
     def _create_buffered_region(
         self,
         point: ee.Geometry.Point,
         buffer_radius: int
     ) -> ee.Geometry:
-        """Create a buffered region around a point."""
+        """Create a buffered region around a point, or use stored polygon."""
+        # If a polygon region was set by _query_metrics_with_region, use it
+        polygon = getattr(self, "_polygon_region", None)
+        if polygon is not None:
+            return polygon
         return point.buffer(buffer_radius)
 
     def _get_date_filter(

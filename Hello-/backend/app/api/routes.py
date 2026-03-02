@@ -183,15 +183,20 @@ async def query_polygon_satellite_data(request: PolygonQueryRequest, http_reques
 
         # Import the polygon query function
         from app.services.earth_engine import query_polygon
+        import asyncio
 
         # Convert points to dict format expected by engine
         points_dict = [{"lat": p.lat, "lng": p.lng} for p in request.points]
 
-        # Query Earth Engine with polygon
-        result = query_polygon(
-            points=points_dict,
-            mode=request.mode,
-            include_scores=request.include_scores
+        # Query Earth Engine with polygon (run in thread to avoid blocking event loop)
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            lambda: query_polygon(
+                points=points_dict,
+                mode=request.mode,
+                include_scores=request.include_scores
+            )
         )
 
         # Calculate centroid for external API calls

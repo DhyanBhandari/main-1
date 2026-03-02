@@ -87,20 +87,20 @@ const PILLAR_DESCRIPTIONS: Record<string, { what: string; why: string }> = {
     why: 'Poor air quality directly impacts respiratory health, agricultural productivity, and contributes to climate change. Monitoring atmospheric health is crucial for UN-SEEA compliance and ESG reporting.',
   },
   B: {
-    what: 'Biodiversity & Habitat evaluates vegetation density (NDVI), species habitat suitability, forest cover, and ecosystem fragmentation. It indicates how well the natural habitat supports diverse life forms.',
-    why: 'Biodiversity is the foundation of ecosystem resilience. TNFD and ISSB frameworks require organizations to measure and disclose their impact on biodiversity and natural habitats.',
+    what: 'Biodiversity & Habitat evaluates vegetation health and density through NDVI (Normalized Difference Vegetation Index), EVI (Enhanced Vegetation Index), LAI (Leaf Area Index), and FPAR (Fraction of Absorbed Photosynthetically Active Radiation), alongside land cover classification to determine dominant ecosystem type.',
+    why: 'Vegetation indices are direct indicators of ecosystem health and productivity. TNFD and ISSB frameworks require organizations to measure and disclose their impact on biodiversity and natural habitats.',
   },
   C: {
-    what: 'Climate Stability assesses temperature trends, precipitation patterns, climate anomalies, and long-term environmental stability through indicators like evapotranspiration and climate moisture index.',
-    why: 'Climate stability directly affects agriculture, water resources, and infrastructure. Understanding climate patterns is essential for TCFD-aligned risk assessment and adaptation planning.',
+    what: 'Carbon & Climate measures tree cover percentage, annual forest loss, canopy height, and above-ground biomass to quantify the carbon storage capacity and sequestration potential of the landscape.',
+    why: 'Forests and woody biomass are critical carbon sinks. Accurate measurement of tree cover and biomass is essential for TCFD-aligned carbon risk assessment, Verra VCS, and Gold Standard carbon credit verification.',
   },
   D: {
-    what: 'Land, Water & Soil analyzes land surface temperature, soil moisture, water occurrence, drought indices, and surface water dynamics to evaluate the health of land and water resources.',
+    what: 'Land, Water & Soil analyzes land surface temperature (LST), soil moisture content, standardized drought index, and surface water occurrence to evaluate the physical condition and resilience of land and water resources.',
     why: 'Land and water degradation threatens food security and livelihoods. UN-SEEA ecosystem accounting requires measurement of soil, water, and land condition as natural capital assets.',
   },
   E: {
-    what: 'Ecosystem Services quantifies the economic and ecological value that natural ecosystems provide, including carbon sequestration, water purification, pollination, and flood regulation.',
-    why: 'Ecosystem services are valued at trillions of dollars globally. ISSB and ESG disclosures increasingly require organizations to quantify their dependency on and impact to ecosystem services.',
+    what: 'Ecosystem & Human Impact assesses the degree of human influence on the landscape through population density, artificial night light intensity, human modification index, terrain elevation, and proximity to permanent water bodies.',
+    why: 'Human footprint metrics reveal pressure on natural ecosystems. ISSB and ESG disclosures require quantification of how human activity modifies and depends on surrounding natural systems.',
   },
 };
 
@@ -587,7 +587,7 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
             : `$${esvVal.toFixed(0)}`;
           circles.push({
             cx: 0,
-            label: 'ESV / YEAR',
+            label: 'NCV / YEAR',
             value: esvDisplay,
             sub: `$${esv.adjusted_esv_per_ha_usd?.toLocaleString()}/ha`,
             color: [37, 99, 235],
@@ -701,7 +701,7 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
       const reportContents = [
         { label: 'Score', desc: 'Overall PPA score (0-100), AAA-CCC grade, pillar-level scores, and impact assessment across health, economic, and biodiversity dimensions.' },
         { label: 'Assessment', desc: 'Detailed remote sensing metrics across 5 environmental pillars with quality indicators, data sources, and per-pillar interpretation.' },
-        { label: 'Report', desc: 'Carbon credits analysis (Verra VCS / Gold Standard aligned), Ecosystem Service Value (TEEB framework), and environmental narrative per pillar.' },
+        { label: 'Report', desc: 'Carbon credits analysis (Verra VCS / Gold Standard aligned), Natural Capital Value (TEEB framework), and environmental narrative per pillar.' },
       ];
 
       reportContents.forEach((item) => {
@@ -1372,7 +1372,7 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
         y = M;
         drawWatermark();
 
-        sectionTitle('Environmental Report', 'Carbon Credits, Ecosystem Service Value & Narrative Analysis');
+        sectionTitle('Environmental Report', 'Carbon Credits, Natural Capital Value & Narrative Analysis');
         y += 4;
 
         // Carbon Credits
@@ -1433,7 +1433,7 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
           pdf.setFontSize(11);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...BRAND);
-          pdf.text('Ecosystem Service Value (ESV)', M, y);
+          pdf.text('Natural Capital Value (NCV)', M, y);
           pdf.setFontSize(7);
           pdf.setFont('helvetica', 'normal');
           pdf.setTextColor(...GRAY);
@@ -1444,9 +1444,9 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
           const esvItems = [
             ['Ecosystem Type', (esv.ecosystem_type || '').replace(/_/g, ' ')],
             ['Baseline NCV', `$${esv.base_esv_per_ha_usd?.toLocaleString()}/ha/yr`],
-            ['PPA-Adjusted ESV', `$${esv.adjusted_esv_per_ha_usd?.toLocaleString()}/ha/yr`],
+            ['PPA-Adjusted NCV', `$${esv.adjusted_esv_per_ha_usd?.toLocaleString()}/ha/yr`],
             ['Total Area', `${esv.area_ha?.toFixed(2)} ha`],
-            ['Total Annual ESV', `$${esv.total_annual_esv_usd?.toLocaleString()}/yr`],
+            ['Total Annual NCV', `$${esv.total_annual_esv_usd?.toLocaleString()}/yr`],
           ];
 
           esvItems.forEach(([label, value], idx) => {
@@ -1539,7 +1539,7 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
           pdf.setFontSize(8);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...BRAND);
-          pdf.text('Total Adjusted ESV', M + 3, y + 5);
+          pdf.text('Total Adjusted NCV', M + 3, y + 5);
           pdf.text(`$${totalEsvValue.toLocaleString()}/ha/yr`, M + CW * 0.45, y + 5);
           y += 14;
 
@@ -1648,11 +1648,11 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
           // VALUE COMPARISON — Current vs Projected
           // ========================================
           checkPage(55);
-          sectionTitle('Value Comparison — Current vs Projected', 'Annual ESV: Current and Year 5 Projections');
+          sectionTitle('Value Comparison — Current vs Projected', 'Annual NCV: Current and Year 5 Projections');
           y += 2;
 
           const compBars = [
-            { label: 'Current ESV', value: projections.currentESV, color: [107, 114, 128] as [number, number, number] },
+            { label: 'Current NCV', value: projections.currentESV, color: [107, 114, 128] as [number, number, number] },
             { label: 'Conservative Yr 5', value: projections.conservative.year5ESV, color: [245, 158, 11] as [number, number, number] },
             { label: 'Moderate Yr 5', value: projections.moderate.year5ESV, color: [34, 197, 94] as [number, number, number] },
             { label: 'Optimistic Yr 5', value: projections.optimistic.year5ESV, color: [59, 130, 246] as [number, number, number] },
@@ -1742,7 +1742,7 @@ const BaselineAssessment = ({ adminEmail }: BaselineAssessmentProps) => {
         'Metrics are normalized on a 0-100 scale using peer-reviewed environmental thresholds. The overall PPA score is a weighted average based on ecosystem type and data quality.',
         'Quality indicators (Good, Moderate, Supplemented, Poor, Unavailable) reflect the reliability of each data point based on cloud cover, sensor accuracy, and temporal coverage.',
         'Carbon credits are calculated using IPCC Tier 1 methodology with conservative verification factors (0.7x) applied to raw CO2 equivalent estimates.',
-        'Ecosystem Service Value (ESV) uses Costanza et al. (2014) baseline values adjusted by the PPA score multiplier to reflect current ecosystem condition.',
+        'Natural Capital Value (NCV) uses Costanza et al. (2014) baseline values adjusted by the PPA score multiplier to reflect current ecosystem condition.',
       ];
 
       methodNotes.forEach((note) => {

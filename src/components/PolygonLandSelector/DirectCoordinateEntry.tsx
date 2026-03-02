@@ -16,33 +16,38 @@ interface DirectCoordinateEntryProps {
   onBack: () => void;
 }
 
-// Simple area calculation
-const calculateArea = (points: PolygonPoint[]): { m2: number; ha: number; acres: number } | null => {
+// Spherical Shoelace — accurate for any parcel size on Earth's curved surface
+const calculateArea = (points: PolygonPoint[]): { m2: number; ha: number; acres: number; widthKm: number; heightKm: number } | null => {
   if (points.length !== 4) return null;
 
   try {
-    const toRadians = (deg: number) => (deg * Math.PI) / 180;
-    const centerLat = points.reduce((sum, p) => sum + p.lat, 0) / 4;
-    const metersPerDegreeLat = 111320;
-    const metersPerDegreeLng = 111320 * Math.cos(toRadians(centerLat));
-
-    const coords = points.map((p) => ({
-      x: p.lng * metersPerDegreeLng,
-      y: p.lat * metersPerDegreeLat,
-    }));
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const R = 6378137; // Earth radius in metres
+    const n = points.length;
 
     let area = 0;
-    for (let i = 0; i < coords.length; i++) {
-      const j = (i + 1) % coords.length;
-      area += coords[i].x * coords[j].y;
-      area -= coords[j].x * coords[i].y;
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      const lat1 = toRad(points[i].lat);
+      const lon1 = toRad(points[i].lng);
+      const lat2 = toRad(points[j].lat);
+      const lon2 = toRad(points[j].lng);
+      area += (lon2 - lon1) * (Math.sin(lat1) + Math.sin(lat2));
     }
-    area = Math.abs(area) / 2;
+    const m2 = Math.abs(area) * R * R / 2;
+
+    const lats = points.map(p => p.lat);
+    const lngs = points.map(p => p.lng);
+    const centerLat = toRad(points.reduce((s, p) => s + p.lat, 0) / n);
+    const latSpanM = (Math.max(...lats) - Math.min(...lats)) * 111320;
+    const lngSpanM = (Math.max(...lngs) - Math.min(...lngs)) * 111320 * Math.cos(centerLat);
 
     return {
-      m2: area,
-      ha: area / 10000,
-      acres: area / 4046.86,
+      m2,
+      ha: m2 / 10000,
+      acres: m2 / 4046.86,
+      widthKm: lngSpanM / 1000,
+      heightKm: latSpanM / 1000,
     };
   } catch {
     return null;
@@ -232,6 +237,9 @@ const DirectCoordinateEntry: React.FC<DirectCoordinateEntryProps> = ({ onComplet
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">km²</p>
             </div>
+          </div>
+          <div className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
+            Polygon span: <span className="font-semibold text-gray-700 dark:text-gray-300">{polygonArea.widthKm.toFixed(3)} km wide</span> × <span className="font-semibold text-gray-700 dark:text-gray-300">{polygonArea.heightKm.toFixed(3)} km tall</span>
           </div>
         </div>
       )}

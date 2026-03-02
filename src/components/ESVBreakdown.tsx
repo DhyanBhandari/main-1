@@ -97,7 +97,7 @@ export const ESVBreakdown = ({
 
             {/* Total Value */}
             <div className="mt-4 text-center">
-              <p className="text-sm text-gray-500">Annual Ecosystem Service Value</p>
+              <p className="text-sm text-gray-500">Annual Natural Capital Value</p>
               <p className="text-3xl font-bold text-gray-900 mt-1">
                 {formatCurrency(esv.adjustedValue)}
                 <span className="text-sm font-normal text-gray-500">/ha/year</span>
@@ -201,7 +201,7 @@ export const ESVBreakdown = ({
         <div className="bg-gray-50 rounded-xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <LineChartIcon className="w-4 h-4 text-gray-600" />
-            <h4 className="text-sm font-semibold text-gray-700">ESV Growth Over Time</h4>
+            <h4 className="text-sm font-semibold text-gray-700">NCV Growth Over Time</h4>
           </div>
           <LineChart
             labels={lineChartData.labels}
@@ -353,7 +353,7 @@ export const ESVBreakdown = ({
 
         <div className="bg-gray-50 rounded-xl p-4">
           <h4 className="text-sm font-semibold text-gray-700 mb-4">
-            Current vs 5-Year Projected ESV
+            Current vs 5-Year Projected NCV
           </h4>
           <BarChart
             labels={comparisonBarData.labels}

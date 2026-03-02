@@ -3,7 +3,7 @@ Pillar C: Carbon - Forest Cover, Biomass, Carbon Storage
 Datasets: Hansen GFC, GEDI L4A, ETH Canopy Height
 """
 
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Optional, Tuple
 import ee
 from .base import BasePillar
 from ..core.config import DATASETS
@@ -130,11 +130,22 @@ class CarbonPillar(BasePillar):
                             "quality": "moderate"
                         }
                     else:
-                        results["metrics"]["biomass"] = {
-                            "value": None,
-                            "quality": "unavailable",
-                            "error": "No GEDI data available"
-                        }
+                        # Use ecosystem-type-based biomass defaults (whitepaper)
+                        biomass_est = self._get_ecosystem_biomass_default(results)
+                        if biomass_est is not None:
+                            results["metrics"]["biomass"] = {
+                                "value": biomass_est,
+                                "unit": "Mg/ha",
+                                "description": "Above-ground Biomass (ecosystem default)",
+                                "source": "Ecosystem default (whitepaper)",
+                                "quality": "moderate"
+                            }
+                        else:
+                            results["metrics"]["biomass"] = {
+                                "value": None,
+                                "quality": "unavailable",
+                                "error": "No GEDI data available"
+                            }
 
             except Exception as e:
                 results["metrics"]["biomass"] = {
@@ -147,12 +158,12 @@ class CarbonPillar(BasePillar):
         if "carbon_stock" in metrics:
             biomass = results.get("metrics", {}).get("biomass", {}).get("value")
             if biomass is not None:
-                # Carbon is approximately 50% of biomass
-                carbon = biomass * 0.5
+                # IPCC carbon fraction: 0.47 of above-ground biomass
+                carbon = biomass * 0.47
                 results["metrics"]["carbon_stock"] = {
                     "value": carbon,
                     "unit": "Mg C/ha",
-                    "description": "Carbon Stock (0.5 x biomass)",
+                    "description": "Carbon Stock (IPCC 0.47 × biomass)",
                     "quality": results["metrics"]["biomass"]["quality"]
                 }
             else:
@@ -193,6 +204,37 @@ class CarbonPillar(BasePillar):
 
         except Exception:
             return False
+
+    # Ecosystem-type-based biomass defaults (Mg/ha) from whitepaper
+    ECOSYSTEM_BIOMASS_DEFAULTS = {
+        "tropical_forest": 200,
+        "mangrove": 150,
+        "wetland": 80,
+        "grassland_savanna": 30,
+        "agricultural": 15,
+        "urban_green": 40,
+        "default": 5,
+    }
+
+    def _get_ecosystem_biomass_default(self, results: Dict) -> Optional[float]:
+        """Return a biomass estimate based on tree_cover heuristic and ecosystem type."""
+        # Attempt to infer ecosystem from tree_cover
+        tc_data = results.get("metrics", {}).get("tree_cover", {})
+        tree_cover = tc_data.get("value") if isinstance(tc_data, dict) else tc_data
+
+        # Simple heuristic: high tree cover → tropical_forest default
+        if tree_cover is not None:
+            # Hansen GFC tree_cover is 0-100 (percent)
+            tc_pct = tree_cover if tree_cover > 1 else tree_cover * 100
+            if tc_pct > 60:
+                return self.ECOSYSTEM_BIOMASS_DEFAULTS["tropical_forest"]
+            elif tc_pct > 25:
+                return self.ECOSYSTEM_BIOMASS_DEFAULTS["grassland_savanna"]
+            elif tc_pct > 5:
+                return self.ECOSYSTEM_BIOMASS_DEFAULTS["agricultural"]
+
+        # Fallback: desert/bare
+        return self.ECOSYSTEM_BIOMASS_DEFAULTS["default"]
 
     def _query_eth_height(self, region: ee.Geometry, results: Dict):
         """Query ETH Canopy Height as fallback."""

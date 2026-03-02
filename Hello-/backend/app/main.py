@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+import asyncio
 import os
 
 # Load environment variables from .env file
@@ -31,8 +32,15 @@ async def lifespan(app: FastAPI):
     """Application lifespan - initialize services on startup."""
     print("Initializing Earth Engine...")
     try:
-        initialize_ee()
+        # Run in thread with timeout to prevent blocking startup
+        await asyncio.wait_for(
+            asyncio.get_event_loop().run_in_executor(None, initialize_ee),
+            timeout=15.0
+        )
         print("Earth Engine initialized successfully!")
+    except asyncio.TimeoutError:
+        print("Warning: Earth Engine initialization timed out after 15s")
+        print("API will attempt to initialize on first request.")
     except Exception as e:
         print(f"Warning: Earth Engine initialization failed: {e}")
         print("API will attempt to initialize on first request.")

@@ -52,7 +52,7 @@ const Technology = () => {
       description: "Proprietary PPA framework converts ecological performance into verifiable, tradeable asset values.",
       icon: Calculator,
       color: "from-green-500 to-emerald-500",
-      features: ["PPA score calculation", "ESV (Ecosystem Service Value)", "Carbon credit quantification", "Risk-adjusted pricing"]
+      features: ["PPA score calculation", "NCV (Natural Capital Value)", "Carbon credit quantification", "Risk-adjusted pricing"]
     },
     {
       layer: 4,

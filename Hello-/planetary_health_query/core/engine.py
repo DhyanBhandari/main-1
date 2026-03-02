@@ -463,11 +463,14 @@ class GEEQueryEngine:
         if carbon_stock is not None:
             carbon_mg_c_ha = carbon_stock
         elif biomass is not None:
-            # Carbon is approximately 50% of above-ground biomass
-            carbon_mg_c_ha = biomass * 0.5
+            # IPCC carbon fraction: 0.47 of above-ground biomass
+            carbon_mg_c_ha = biomass * 0.47
         elif tree_cover is not None and tree_cover > 0:
-            # Rough estimate: assume 2 Mg C/ha per 1% tree cover (very rough)
-            carbon_mg_c_ha = tree_cover * 2
+            # Hansen GFC tree_cover may return fraction (0-1) via polygon
+            # queries or percentage (0-100) — normalise to percentage first
+            tc_pct = tree_cover if tree_cover > 1 else tree_cover * 100
+            # Rough estimate: 2 Mg C/ha per 1% tree cover
+            carbon_mg_c_ha = tc_pct * 2
         else:
             return {
                 "available": False,
@@ -502,7 +505,7 @@ class GEEQueryEngine:
                 "high_usd": round(verified_co2_tonnes * price_high, 2),
                 "price_range": f"${price_low}-${price_high}/tonne CO2"
             },
-            "methodology": "IPCC Tier 1 (biomass × 0.5 × 3.67)"
+            "methodology": "IPCC Tier 1 (biomass × 0.47 × 3.67)"
         }
 
     def _calculate_esv(
@@ -521,14 +524,14 @@ class GEEQueryEngine:
             return {"error": "Area not available for ESV calculation"}
 
         # Base ESV values by ecosystem type ($/ha/year)
-        # Based on Costanza et al. and de Groot et al. estimates
+        # Aligned with whitepaper service breakdowns and frontend esvCalculation.ts
         BASE_ESV = {
             "tropical_forest": 5382,
             "mangrove": 9990,
             "wetland": 25682,
             "grassland_savanna": 2871,
-            "agricultural": 1532,
-            "urban_green": 3212,
+            "agricultural": 5567,
+            "urban_green": 6661,
             "default": 3000
         }
 
@@ -773,8 +776,12 @@ class GEEQueryEngine:
                 if tree_cover < 25:
                     ecosystem = "grassland_savanna"
 
+            # Only apply human_modification override when land_cover gave a
+            # weak/default result.  Don't override strong land_cover signals
+            # (e.g. tropical_forest, wetland, mangrove) — Amazon rainforest has
+            # high human_modification but is still tropical_forest.
             if human_modification is not None and human_modification > 0.6:
-                if ecosystem not in ["urban_green", "agricultural"]:
+                if ecosystem in ("default",):
                     ecosystem = "urban_green"
 
             return ecosystem

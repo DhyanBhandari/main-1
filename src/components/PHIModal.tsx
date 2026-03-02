@@ -200,7 +200,7 @@ const PHIOptionsMenu = ({ onSelectSinglePoint, onSelectPolygon }: PHIOptionsMenu
                   Carbon Credits
                 </span>
                 <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
-                  ESV Value
+                  NCV Value
                 </span>
               </div>
             </div>

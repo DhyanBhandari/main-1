@@ -99,7 +99,7 @@ const PILLAR_INFO: Record<string, { summary: string; importance: string }> = {
     importance: "Land degradation threatens food security, water resources, and ecosystem resilience"
   },
   E: {
-    summary: "Evaluates human presence and modification of natural landscapes",
+    summary: "Measures human footprint through population density, night light intensity, human modification index, elevation, and distance to permanent water bodies",
     importance: "Balancing human development with ecosystem preservation is key to sustainability"
   }
 };
@@ -720,6 +720,14 @@ const GetTheReport = () => {
                     {Object.keys(phiData.pillars).length} Pillars Analyzed
                   </span>
                 </div>
+                {isPolygon && polygonData?.ecosystem_service_value?.available && (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 border border-blue-400/30 rounded-full">
+                    <span className="text-blue-300 text-xs font-semibold">NCV</span>
+                    <span className="text-sm font-semibold text-white">
+                      ${polygonData.ecosystem_service_value.total_annual_esv_usd?.toLocaleString()}/yr
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
@@ -835,7 +843,7 @@ const GetTheReport = () => {
                       <div className="p-3 bg-blue-500/20 rounded-xl">
                         <GlobeIcon className="w-6 h-6 text-blue-300" />
                       </div>
-                      <h3 className="text-xl font-bold text-white">Ecosystem Service Value</h3>
+                      <h3 className="text-xl font-bold text-white">Natural Capital Value (NCV)</h3>
                     </div>
 
                     <div className="space-y-4">
@@ -852,7 +860,7 @@ const GetTheReport = () => {
                         </span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b border-white/10">
-                        <span className="text-green-100">Adjusted ESV</span>
+                        <span className="text-green-100">Adjusted NCV</span>
                         <span className="text-white font-semibold">
                           ${polygonData.ecosystem_service_value.adjusted_esv_per_ha_usd?.toLocaleString()}/ha/year
                         </span>
@@ -865,7 +873,7 @@ const GetTheReport = () => {
                       </div>
 
                       <div className="bg-blue-500/20 rounded-xl p-4 mt-4">
-                        <p className="text-sm text-green-100 mb-2">Total Annual ESV</p>
+                        <p className="text-sm text-green-100 mb-2">Total Annual NCV</p>
                         <span className="text-blue-300 font-bold text-2xl">
                           ${polygonData.ecosystem_service_value.total_annual_esv_usd?.toLocaleString()}/year
                         </span>

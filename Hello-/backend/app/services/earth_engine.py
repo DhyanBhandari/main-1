@@ -67,16 +67,15 @@ def initialize_ee():
             print(f"Service account auth failed: {e}")
             raise
     else:
-        # Development: Use user authentication
+        # Development: Use user authentication (no interactive browser auth in server mode)
         try:
             ee.Initialize(project=project_id)
             print(f"Earth Engine initialized with user auth, project: {project_id}")
             _initialized = True
-        except ee.EEException:
-            print("Authenticating with Earth Engine...")
-            ee.Authenticate()
-            ee.Initialize(project=project_id)
-            _initialized = True
+        except ee.EEException as e:
+            print(f"Earth Engine user auth failed: {e}")
+            print("Please set EE_SERVICE_ACCOUNT and EE_PRIVATE_KEY in .env, or run 'earthengine authenticate' in terminal first.")
+            raise
 
 
 def is_initialized() -> bool:
